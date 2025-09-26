@@ -1,0 +1,1278 @@
+Project Purpose & Features
+TrendSensei is an AI-powered e-commerce analytics platform.
+It provides real-time insights, competitor analysis, product tracking, and AI recommendations for businesses.
+Key features include:
+AI-powered analytics (machine learning algorithms for actionable insights)
+Real-time market and product data
+Multi-platform support (Amazon, Flipkart, Shopify, etc.)
+Secure, encrypted data storage
+Subscription plans (Free, Basic, Premium) with feature tiers
+Architecture & Technologies
+Frontend: React (with Vite, TypeScript, Tailwind CSS)
+Located in client
+Modular UI components (dashboard, chatbot, charts, filters, etc.)
+Pages for dashboard, login, signup, subscription, about, etc.
+Backend: Node.js (Express, TypeScript)
+Located in server
+Handles API routes, OpenAI integration, product data generation
+Uses Vite for development/build tooling
+Shared: Common schema and types in shared
+Other:
+Uses PostCSS, Drizzle ORM (likely for database)
+.replit config for deployment and environment setup
+Code Structure
+
+Code Structure
+components: Reusable UI elements (buttons, cards, dialogs, etc.)
+pages: Main app pages (dashboard, about, subscription, etc.)
+server: API, services, and server logic
+shared: Shared types/schemas for consistency between client and server
+Pros
+Modern stack: Uses React, Vite, TypeScript, Tailwind CSS for fast development and performance.
+Modular design: Well-organized components and pages for maintainability.
+AI integration: Leverages OpenAI for recommendations and insights.
+Scalable: Designed to handle large datasets and many users.
+Security: Emphasizes encrypted storage and privacy.
+Clear feature tiers: Subscription plans are well-defined for different user needs.
+Cons / Areas for Improvement
+Complexity: AI and real-time features may require careful resource management and optimization.
+Deployment: Vite/Node.js setup may need tuning for production (e.g., static file serving, environment variables).
+Testing: No explicit mention of automated tests or CI/CD.
+Error handling: Needs robust error handling for API and data services.
+Documentation: May need more developer and user documentation for onboarding.
+
+
+
+PS C:\Users\AFI-02-AI\Desktop\TrendSensei> ls
+
+
+    Directory: C:\Users\AFI-02-AI\Desktop\TrendSensei
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        26-09-2025     15:11                .git
+d-----        26-09-2025     15:10                .local
+d-----        26-09-2025     15:10                client
+d-----        26-09-2025     15:34                node_modules
+d-----        26-09-2025     15:10                server
+d-----        26-09-2025     15:10                shared
+-a----        26-09-2025     15:10             67 .gitignore
+-a----        26-09-2025     15:10            776 .replit
+-a----        26-09-2025     15:10            459 components.json
+-a----        26-09-2025     15:10            325 drizzle.config.ts
+-a----        26-09-2025     15:33         297283 package-lock.json
+-a----        26-09-2025     15:15           3705 package.json
+-a----        26-09-2025     15:10             80 postcss.config.js
+-a----        26-09-2025     15:10           3847 tailwind.config.ts
+-a----        26-09-2025     15:10            657 tsconfig.json
+-a----        26-09-2025     15:10           1080 vite.config.ts
+
+
+PS C:\Users\AFI-02-AI\Desktop\TrendSensei> ^C
+PS C:\Users\AFI-02-AI\Desktop\TrendSensei> 
+
+
+
+
+PS C:\Users\AFI-02-AI\Desktop\TrendSensei\client> cd ..
+PS C:\Users\AFI-02-AI\Desktop\TrendSensei> ls client/src
+
+
+    Directory: C:\Users\AFI-02-AI\Desktop\TrendSensei\client\src
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        26-09-2025     15:10                components
+d-----        26-09-2025     15:10                hooks
+d-----        26-09-2025     15:10                lib
+d-----        26-09-2025     15:10                pages
+-a----        26-09-2025     15:10           2788 App.tsx
+-a----        26-09-2025     15:10           8524 index.css
+-a----        26-09-2025     15:10            157 main.tsx
+
+
+
+
+PS C:\Users\AFI-02-AI\Desktop\TrendSensei\client> cd ..
+PS C:\Users\AFI-02-AI\Desktop\TrendSensei> ls client/src
+
+
+    Directory: C:\Users\AFI-02-AI\Desktop\TrendSensei\client\src
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        26-09-2025     15:10                components
+d-----        26-09-2025     15:10                hooks
+d-----        26-09-2025     15:10                lib
+d-----        26-09-2025     15:10                pages
+-a----        26-09-2025     15:10           2788 App.tsx
+-a----        26-09-2025     15:10           8524 index.css
+-a----        26-09-2025     15:10            157 main.tsx
+
+
+PS C:\Users\AFI-02-AI\Desktop\TrendSensei> 
+
+
+
+PS C:\Users\AFI-02-AI\Desktop\TrendSensei> ls server
+
+
+    Directory: C:\Users\AFI-02-AI\Desktop\TrendSensei\server
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        26-09-2025     15:10                services
+-a----        26-09-2025     15:28           2068 index.ts
+-a----        26-09-2025     15:10          10514 routes.ts
+-a----        26-09-2025     15:10          10058 storage.ts
+-a----        26-09-2025     15:10           2263 vite.ts
+
+
+PS C:\Users\AFI-02-AI\Desktop\TrendSensei> ls server/services
+
+
+    Directory: C:\Users\AFI-02-AI\Desktop\TrendSensei\server\services
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        26-09-2025     15:10          10575 openai.ts
+-a----        26-09-2025     15:37           5797 productGenerator.ts
+
+
+PS C:\Users\AFI-02-AI\Desktop\TrendSensei> ^C
+PS C:\Users\AFI-02-AI\Desktop\TrendSensei> 
+
+
+// Free AI service using pre-generated responses and templates
+// No API key required - all AI responses are generated locally
+
+export interface AIInsight {
+  summary: string;
+  recommendations: string[];
+  trends: string[];
+  opportunities: string[];
+}
+
+export interface ChatbotResponse {
+  message: string;
+  suggestions?: string[];
+}
+
+export async function generateChartInsight(chartType: string, data: any): Promise<string> {
+  // Free AI service with pre-generated insights based on chart type
+  const insights = {
+    sales: [
+      "Revenue shows strong upward trend with 23% growth this quarter. Consider increasing inventory for top-performing products to capitalize on demand.",
+      "Sales momentum indicates seasonal peak approaching. Optimize supply chain and marketing spend for maximum ROI.",
+      "Strong performance in key categories suggests successful pricing strategy. Continue monitoring competitor pricing for opportunities."
+    ],
+    category: [
+      "Electronics and Fashion categories drive 65% of total revenue. Focus marketing efforts on these high-performing segments.",
+      "Home & Kitchen showing emerging growth potential with 18% increase. Consider expanding product range in this category.",
+      "Beauty & Personal Care has highest profit margins at 42%. Increase promotion and inventory allocation for optimal returns."
+    ],
+    geographic: [
+      "Mumbai and Delhi markets account for 45% of sales. Strong opportunity for regional expansion in Bangalore and Chennai.",
+      "North India regions show 35% higher conversion rates. Tailor marketing campaigns to regional preferences for better results.",
+      "Tier-2 cities demonstrate untapped potential with lower competition. Strategic expansion could yield significant market share."
+    ],
+    profit: [
+      "Profit margins are optimized across premium product lines. Focus on volume growth while maintaining pricing power.",
+      "Mid-range products show opportunity for margin improvement through better supplier negotiations.",
+      "High-margin accessories complement core products well. Cross-selling strategies can boost overall profitability."
+    ]
+  };
+
+  const chartInsights = insights[chartType as keyof typeof insights] || insights.sales;
+  const randomInsight = chartInsights[Math.floor(Math.random() * chartInsights.length)];
+  
+  return randomInsight;
+}
+
+export async function generateDashboardRecommendations(userLocation: string, productsData: any[], analyticsData: any[]): Promise<AIInsight> {
+  // Free AI service with location-based recommendations
+  const locationInsights = {
+    mumbai: {
+      summary: "Your Mumbai market shows strong performance with premium product focus. Electronics and fashion lead with 67% of revenue, indicating sophisticated consumer base.",
+      recommendations: [
+        "Expand premium electronics inventory by 25% - Mumbai consumers show high willingness to pay for quality",
+        "Launch targeted campaigns for fashion accessories - 40% higher conversion rate in your region",
+        "Consider same-day delivery for Mumbai metropolitan area to boost competitiveness"
+      ],
+      trends: [
+        "Premium smartphone accessories trending up 45% in Mumbai market",
+        "Sustainable fashion gaining momentum with 32% growth in eco-friendly products",
+        "Home workout equipment seeing sustained demand post-pandemic"
+      ],
+      opportunities: [
+        "Partner with local fashion designers for exclusive Mumbai collections",
+        "Tap into Bollywood merchandise market - high demand during festival seasons",
+        "Expand to Navi Mumbai and Thane suburbs with dedicated last-mile delivery"
+      ]
+    },
+    delhi: {
+      summary: "Delhi market demonstrates strong seasonal patterns with high-value purchases during festivals. Winter apparel and gifting categories show exceptional performance.",
+      recommendations: [
+        "Stock up winter apparel 3 months ahead - Delhi shows 60% higher seasonal demand",
+        "Focus on gifting categories during Diwali and wedding seasons",
+        "Optimize logistics for NCR region - significant opportunity in Gurgaon and Noida"
+      ],
+      trends: [
+        "Wedding season products showing 55% growth in Delhi NCR region",
+        "Air purifiers and health products trending due to pollution concerns",
+        "Traditional wear with modern twist gaining popularity among millennials"
+      ],
+      opportunities: [
+        "Launch Delhi-specific product bundles for wedding and festival seasons",
+        "Partner with wedding planners and event companies for B2B sales",
+        "Create pollution-focused product category for health-conscious consumers"
+      ]
+    }
+  };
+
+  const defaultInsight = {
+    summary: `Your ${userLocation} market shows promising growth potential with diverse product portfolio performing well across multiple categories.`,
+    recommendations: [
+      "Optimize inventory for top-performing products in your region",
+      "Implement competitive pricing strategy based on local market conditions",
+      "Enhance customer experience with region-specific promotions and offers"
+    ],
+    trends: [
+      "Mobile-first shopping increasing across all age groups in India",
+      "Vernacular content and regional preferences driving purchase decisions",
+      "Quick commerce and fast delivery becoming key differentiators"
+    ],
+    opportunities: [
+      "Expand into adjacent product categories with similar customer base",
+      "Leverage social commerce and influencer partnerships",
+      "Implement loyalty programs to increase customer lifetime value"
+    ]
+  };
+
+  const locationKey = userLocation.toLowerCase();
+  return locationInsights[locationKey as keyof typeof locationInsights] || defaultInsight;
+}
+
+export async function chatbotResponse(userMessage: string, userContext: any): Promise<ChatbotResponse> {
+  // Free AI chatbot with pattern-based responses
+  const message = userMessage.toLowerCase();
+  
+  // Pattern matching for common queries
+  if (message.includes('trending') || message.includes('trend')) {
+    return {
+      message: "Based on current market analysis, wireless earbuds, smart watches, and eco-friendly products are trending strongly. Gaming accessories and home fitness equipment also show consistent growth. Would you like specific data on any category?",
+      suggestions: ["Show me gaming product trends", "What's trending in electronics?", "Best profit margin products?"]
+    };
+  }
+  
+  if (message.includes('profit') || message.includes('margin')) {
+    return {
+      message: "Your highest profit margins are in Beauty & Personal Care (42%), Premium Electronics (38%), and Home Accessories (35%). Focus on these categories for optimal returns. Consider bundling strategies to increase average order value.",
+      suggestions: ["How to improve margins?", "Best selling high-profit products?", "Pricing optimization tips?"]
+    };
+  }
+  
+  if (message.includes('sales') || message.includes('improve') || message.includes('increase')) {
+    return {
+      message: "To boost sales: 1) Optimize your top 10 products for better visibility, 2) Run targeted promotions during peak hours (7-9 PM), 3) Improve product images and descriptions, 4) Implement cross-selling for complementary items. Your conversion rate can improve by 15-25% with these changes.",
+      suggestions: ["What are my peak sales hours?", "How to increase conversion rate?", "Best promotion strategies?"]
+    };
+  }
+  
+  if (message.includes('competitor') || message.includes('competition') || message.includes('price')) {
+    return {
+      message: "Competitive analysis shows you're priced 5-12% higher than average in Electronics but 8-15% lower in Fashion. Consider adjusting smartphone accessory prices down 7% and increasing fashion margins by 10%. Monitor competitor promotions weekly for opportunities.",
+      suggestions: ["Show competitor pricing", "How to track competitor changes?", "Best pricing strategy?"]
+    };
+  }
+  
+  if (message.includes('market') || message.includes('opportunity') || message.includes('expand')) {
+    return {
+      message: "Market opportunities: 1) Expand into Tier-2 cities showing 25% growth potential, 2) Launch sustainable product lines - growing 40% annually, 3) Target Gen-Z with gaming and tech accessories. Focus on regional festivals for seasonal boosts.",
+      suggestions: ["Which cities to expand to?", "What products for Gen-Z?", "Festival season strategies?"]
+    };
+  }
+  
+  if (message.includes('hello') || message.includes('hi') || message.includes('help')) {
+    return {
+      message: "Hello! I'm your AI e-commerce assistant. I can help you with product trends, profit optimization, sales strategies, competitor analysis, and market opportunities. What specific area would you like to explore?",
+      suggestions: ["What's trending now?", "How to improve profits?", "Show me competitor analysis"]
+    };
+  }
+  
+  // Default response for unmatched queries
+  return {
+    message: "I can help you analyze market trends, optimize pricing, improve sales performance, and identify growth opportunities. Which aspect of your e-commerce business would you like to focus on today?",
+    suggestions: ["Product trends analysis", "Pricing optimization", "Sales improvement tips", "Market opportunities"]
+  };
+}
+
+export async function analyzeSentiment(text: string): Promise<{ rating: number; confidence: number }> {
+  // Free sentiment analysis using keyword-based approach
+  const positiveWords = ['great', 'excellent', 'amazing', 'wonderful', 'fantastic', 'love', 'perfect', 'best', 'awesome', 'outstanding'];
+  const negativeWords = ['terrible', 'awful', 'horrible', 'worst', 'hate', 'bad', 'poor', 'disappointing', 'useless', 'waste'];
+  
+  const words = text.toLowerCase().split(/\s+/);
+  let positiveCount = 0;
+  let negativeCount = 0;
+  
+  words.forEach(word => {
+    if (positiveWords.some(pos => word.includes(pos))) positiveCount++;
+    if (negativeWords.some(neg => word.includes(neg))) negativeCount++;
+  });
+  
+  // Calculate rating (1-5 scale)
+  let rating = 3; // neutral default
+  const sentiment = positiveCount - negativeCount;
+  
+  if (sentiment > 0) {
+    rating = Math.min(5, 3 + sentiment);
+  } else if (sentiment < 0) {
+    rating = Math.max(1, 3 + sentiment);
+  }
+  
+  // Calculate confidence based on sentiment strength
+  const confidence = Math.min(1, Math.max(0.3, (Math.abs(sentiment) + 1) / 5));
+  
+  return { 
+    rating: Math.round(rating), 
+    confidence: Math.round(confidence * 100) / 100 
+  };
+}
+
+import { type InsertProduct } from "@shared/schema";
+import { storage } from "../storage";
+
+const CATEGORIES = [
+  "Electronics", "Fashion", "Home & Kitchen", "Books", "Sports & Fitness", 
+  "Beauty & Personal Care", "Automotive", "Health & Wellness", "Toys & Games", 
+  "Office Supplies", "Garden & Outdoor", "Pet Supplies"
+];
+
+const BRANDS = [
+  "Apple", "Samsung", "Nike", "Adidas", "Sony", "LG", "Dell", "HP", "Canon", 
+  "Nikon", "Puma", "Under Armour", "Zara", "H&M", "IKEA", "Philips", "Xiaomi", 
+  "OnePlus", "Realme", "Boat", "JBL", "Bose", "Amazon Basics", "Lenovo", "Asus"
+];
+
+const PRODUCT_NAMES = {
+  "Electronics": [
+    "Wireless Earbuds Pro", "Smart Watch Series", "Gaming Laptop", "4K Smart TV", 
+    "Bluetooth Speaker", "Digital Camera", "Smartphone", "Tablet", "Power Bank", 
+    "Wireless Charger", "Smart Home Hub", "Fitness Tracker", "Gaming Mouse", 
+    "Mechanical Keyboard", "Monitor", "Router", "Webcam", "Drone", "Action Camera"
+  ],
+  "Fashion": [
+    "Designer Backpack", "Casual T-Shirt", "Denim Jeans", "Running Shoes", 
+    "Leather Wallet", "Sunglasses", "Wrist Watch", "Handbag", "Sneakers", 
+    "Formal Shirt", "Winter Jacket", "Summer Dress", "Belt", "Scarf", "Cap"
+  ],
+  "Home & Kitchen": [
+    "Coffee Maker", "Air Fryer", "Vacuum Cleaner", "Blender", "Microwave Oven", 
+    "Toaster", "Rice Cooker", "Water Purifier", "Kitchen Scale", "Mixer Grinder", 
+    "Pressure Cooker", "Food Processor", "Dishwasher", "Refrigerator", "Washing Machine"
+  ],
+  "Beauty & Personal Care": [
+    "Face Cream", "Shampoo", "Body Lotion", "Moisturizer", "Sunscreen", 
+    "Hair Oil", "Face Wash", "Lip Balm", "Perfume", "Serum", "Mask", "Soap"
+  ],
+  "Sports & Fitness": [
+    "Yoga Mat", "Dumbbells", "Treadmill", "Exercise Bike", "Protein Powder", 
+    "Gym Bag", "Water Bottle", "Resistance Bands", "Foam Roller", "Sports Shoes"
+  ]
+};
+
+const LOCATIONS = ["mumbai", "delhi", "bangalore", "chennai", "kolkata", "pune", "hyderabad", "ahmedabad"];
+
+function getRandomElement<T>(array: T[]): T {
+  return array[Math.floor(Math.random() * array.length)];
+}
+
+function generateRandomPrice(): string {
+  const prices = [299, 499, 799, 999, 1299, 1599, 1999, 2499, 2999, 3999, 4999, 5999, 7999, 9999, 12999, 15999, 19999, 24999, 29999, 39999, 49999, 59999, 79999, 99999, 999999];
+  return getRandomElement(prices).toString();
+}
+
+function generateCompetitorPrices(basePrice: number) {
+  const variation = 0.2; // 20% variation
+  const amazonPrice = basePrice * (0.9 + Math.random() * variation);
+  const flipkartPrice = basePrice * (0.9 + Math.random() * variation);
+  const myntraPrice = basePrice * (0.95 + Math.random() * variation);
+  
+  return {
+    amazon: Math.round(amazonPrice),
+    flipkart: Math.round(flipkartPrice),
+    myntra: Math.round(myntraPrice)
+  };
+}
+
+function generateLocationData() {
+  const data: Record<string, number> = {};
+  LOCATIONS.forEach(location => {
+    data[location] = Math.floor(Math.random() * 500 + 10);
+  });
+  return data;
+}
+
+function generateRandomDate(start: Date, end: Date): Date {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+}
+
+export async function generateSampleProducts(count: number = 10000): Promise<void> {
+  console.log(`Generating ${count} sample products...`);
+  
+  const startDate = new Date();
+  startDate.setFullYear(startDate.getFullYear() - 2); // 2 years ago
+  const endDate = new Date();
+
+  for (let i = 0; i < count; i++) {
+    const category = getRandomElement(CATEGORIES);
+    const brand = getRandomElement(BRANDS);
+    const productNames = PRODUCT_NAMES[category as keyof typeof PRODUCT_NAMES] || PRODUCT_NAMES["Electronics"];
+    const name = getRandomElement(productNames);
+    const price = generateRandomPrice();
+    const basePrice = parseFloat(price);
+    
+    const product: InsertProduct = {
+      name: `${brand} ${name}`,
+      category,
+      brand,
+      description: `Premium ${name.toLowerCase()} from ${brand} with advanced features and excellent build quality.`,
+      price,
+      competitorPrices: generateCompetitorPrices(basePrice),
+      rating: (Math.random() * 2 + 3).toFixed(1), // 3.0 to 5.0
+      reviewCount: Math.floor(Math.random() * 10000 + 10),
+      salesVolume: Math.floor(Math.random() * 1000 + 5),
+      profitMargin: (Math.random() * 60 + 10).toFixed(2), // 10% to 70%
+      stockLevel: Math.floor(Math.random() * 500 + 10),
+      locationData: generateLocationData(),
+      launchDate: generateRandomDate(startDate, endDate),
+      trending: Math.random() < 0.15, // 15% chance of being trending
+    };
+
+    await storage.createProduct(product);
+    
+    if (i % 1000 === 0) {
+      console.log(`Generated ${i + 1} products...`);
+    }
+  }
+  
+  console.log(`Successfully generated ${count} sample products!`);
+}
+
+export async function generateSampleAnalytics(): Promise<void> {
+  console.log("Generating sample analytics data...");
+  
+  const products = await storage.getProducts(1000); // Get first 1000 products
+  const startDate = new Date();
+  startDate.setMonth(startDate.getMonth() - 6); // 6 months ago
+  
+  for (const product of products) {
+    // Generate analytics for last 6 months
+    for (let month = 0; month < 6; month++) {
+      const date = new Date(startDate);
+      date.setMonth(date.getMonth() + month);
+      
+      const sales = Math.floor(Math.random() * product.salesVolume + 1);
+      const revenue = sales * parseFloat(product.price);
+      
+      await storage.createAnalytics({
+        productId: product.id,
+        date,
+        sales,
+        revenue: revenue.toString(),
+        views: Math.floor(sales * (Math.random() * 50 + 10)), // 10-60x sales
+        conversions: sales,
+        location: getRandomElement(LOCATIONS)
+      });
+    }
+  }
+  
+  console.log("Sample analytics data generated!");
+}
+
+
+import express, { type Request, Response, NextFunction } from "express";
+import { registerRoutes } from "./routes";
+import { setupVite, serveStatic, log } from "./vite";
+
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+app.use((req, res, next) => {
+  const start = Date.now();
+  const path = req.path;
+  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+
+  const originalResJson = res.json;
+  res.json = function (bodyJson, ...args) {
+    capturedJsonResponse = bodyJson;
+    return originalResJson.apply(res, [bodyJson, ...args]);
+  };
+
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    if (path.startsWith("/api")) {
+      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+      if (capturedJsonResponse) {
+        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      }
+
+      if (logLine.length > 80) {
+        logLine = logLine.slice(0, 79) + "…";
+      }
+
+      log(logLine);
+    }
+  });
+
+  next();
+});
+
+(async () => {
+  const server = await registerRoutes(app);
+
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+
+    res.status(status).json({ message });
+    throw err;
+  });
+
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
+
+  // ALWAYS serve the app on the port specified in the environment variable PORT
+  // Other ports are firewalled. Default to 5000 if not specified.
+  // this serves both the API and the client.
+  // It is the only port that is not firewalled.
+  const port = parseInt(process.env.PORT || '5000', 10);
+  server.listen({
+    port,
+    host: "127.0.0.1",
+    reusePort: true,
+  }, () => {
+    log(`serving on port ${port}`);
+  });
+})();
+
+
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { generateChartInsight, generateDashboardRecommendations, chatbotResponse } from "./services/openai";
+import { generateSampleProducts, generateSampleAnalytics } from "./services/productGenerator";
+import { insertUserSchema, insertChatMessageSchema } from "@shared/schema";
+import { z } from "zod";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Initialize sample data if products don't exist
+  app.get("/api/init-data", async (req, res) => {
+    try {
+      const productCount = await storage.getProductCount();
+      if (productCount === 0) {
+        await generateSampleProducts(10000);
+        await generateSampleAnalytics();
+        res.json({ message: "Sample data initialized successfully", productCount: 10000 });
+      } else {
+        res.json({ message: "Data already exists", productCount });
+      }
+    } catch (error) {
+      console.error("Error initializing data:", error);
+      res.status(500).json({ message: "Failed to initialize data" });
+    }
+  });
+
+  // Authentication routes
+  app.post("/api/auth/signup", async (req, res) => {
+    try {
+      const userData = insertUserSchema.parse(req.body);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(userData.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "User already exists" });
+      }
+      
+      const user = await storage.createUser(userData);
+      res.json({ user: { ...user, password: undefined } });
+    } catch (error) {
+      console.error("Signup error:", error);
+      res.status(400).json({ message: "Invalid user data" });
+    }
+  });
+
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      const user = await storage.getUserByEmail(email);
+      
+      if (!user || user.password !== password) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      
+      res.json({ user: { ...user, password: undefined } });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ message: "Login failed" });
+    }
+  });
+
+  // Dashboard metrics
+  app.get("/api/dashboard/metrics", async (req, res) => {
+    try {
+      const metrics = await storage.getDashboardMetrics();
+      res.json(metrics);
+    } catch (error) {
+      console.error("Error fetching metrics:", error);
+      res.status(500).json({ message: "Failed to fetch metrics" });
+    }
+  });
+
+  // Products routes
+  app.get("/api/products", async (req, res) => {
+    try {
+      const { limit = "50", offset = "0", category, minPrice, maxPrice, minRating, location } = req.query;
+      
+      const filters: any = {};
+      if (category) filters.category = category;
+      if (minPrice) filters.minPrice = parseFloat(minPrice as string);
+      if (maxPrice) filters.maxPrice = parseFloat(maxPrice as string);
+      if (minRating) filters.minRating = parseFloat(minRating as string);
+      if (location) filters.location = location;
+      
+      const products = await storage.getProducts(
+        parseInt(limit as string), 
+        parseInt(offset as string),
+        filters
+      );
+      
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      res.status(500).json({ message: "Failed to fetch products" });
+    }
+  });
+
+  app.get("/api/products/trending", async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 10;
+      const products = await storage.getTrendingProducts(limit);
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching trending products:", error);
+      res.status(500).json({ message: "Failed to fetch trending products" });
+    }
+  });
+
+  app.get("/api/products/top-profit", async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 10;
+      const products = await storage.getTopProfitProducts(limit);
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching top profit products:", error);
+      res.status(500).json({ message: "Failed to fetch top profit products" });
+    }
+  });
+
+  app.get("/api/products/underperforming", async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 10;
+      const products = await storage.getUnderperformingProducts(limit);
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching underperforming products:", error);
+      res.status(500).json({ message: "Failed to fetch underperforming products" });
+    }
+  });
+
+  app.get("/api/products/search", async (req, res) => {
+    try {
+      const { q } = req.query;
+      if (!q || typeof q !== 'string') {
+        return res.status(400).json({ message: "Search query required" });
+      }
+      
+      const products = await storage.searchProducts(q);
+      res.json(products);
+    } catch (error) {
+      console.error("Error searching products:", error);
+      res.status(500).json({ message: "Failed to search products" });
+    }
+  });
+
+  // Analytics routes
+  app.get("/api/analytics/category-performance", async (req, res) => {
+    try {
+      const performance = await storage.getCategoryPerformance();
+      res.json(performance);
+    } catch (error) {
+      console.error("Error fetching category performance:", error);
+      res.status(500).json({ message: "Failed to fetch category performance" });
+    }
+  });
+
+  app.get("/api/analytics/geographic", async (req, res) => {
+    try {
+      const geographic = await storage.getGeographicData();
+      res.json(geographic);
+    } catch (error) {
+      console.error("Error fetching geographic data:", error);
+      res.status(500).json({ message: "Failed to fetch geographic data" });
+    }
+  });
+
+  app.get("/api/analytics/sales-trends", async (req, res) => {
+    try {
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - 6);
+      
+      const analytics = await storage.getAnalytics(undefined, startDate, endDate);
+      
+      // Group by month
+      const monthlyData: Record<string, number> = {};
+      analytics.forEach(item => {
+        const month = item.date.toISOString().substring(0, 7); // YYYY-MM
+        monthlyData[month] = (monthlyData[month] || 0) + parseFloat(item.revenue);
+      });
+      
+      const salesTrends = Object.entries(monthlyData).map(([month, revenue]) => ({
+        month,
+        revenue,
+        growth: Math.random() * 20 + 5 // Mock growth percentage
+      }));
+      
+      res.json(salesTrends);
+    } catch (error) {
+      console.error("Error fetching sales trends:", error);
+      res.status(500).json({ message: "Failed to fetch sales trends" });
+    }
+  });
+
+  // AI routes
+  app.post("/api/ai/chart-insight", async (req, res) => {
+    try {
+      const { chartType, data } = req.body;
+      if (!chartType || !data) {
+        return res.status(400).json({ message: "Chart type and data required" });
+      }
+      
+      const insight = await generateChartInsight(chartType, data);
+      res.json({ insight });
+    } catch (error) {
+      console.error("Error generating chart insight:", error);
+      res.status(500).json({ message: "Failed to generate insight" });
+    }
+  });
+
+  app.post("/api/ai/recommendations", async (req, res) => {
+    try {
+      const { userLocation = "Mumbai" } = req.body;
+      
+      const products = await storage.getProducts(50);
+      const analytics = await storage.getAnalytics();
+      
+      const recommendations = await generateDashboardRecommendations(
+        userLocation, 
+        products, 
+        analytics.slice(0, 20)
+      );
+      
+      res.json(recommendations);
+    } catch (error) {
+      console.error("Error generating recommendations:", error);
+      res.status(500).json({ message: "Failed to generate recommendations" });
+    }
+  });
+
+  // Chat routes
+  app.post("/api/chat", async (req, res) => {
+    try {
+      const messageData = insertChatMessageSchema.parse(req.body);
+      
+      // Generate AI response
+      const userContext = {
+        location: "Mumbai", // Default or from user profile
+        subscriptionTier: "free"
+      };
+      
+      const aiResponse = await chatbotResponse(messageData.message, userContext);
+      
+      // Save chat message with response
+      const chatMessage = await storage.createChatMessage({
+        ...messageData,
+        response: aiResponse.message
+      });
+      
+      res.json({ 
+        message: aiResponse.message,
+        suggestions: aiResponse.suggestions,
+        chatId: chatMessage.id
+      });
+    } catch (error) {
+      console.error("Error processing chat:", error);
+      res.status(500).json({ message: "Failed to process chat message" });
+    }
+  });
+
+  app.get("/api/chat/history/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const limit = parseInt(req.query.limit as string) || 50;
+      
+      const messages = await storage.getChatMessages(userId, limit);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching chat history:", error);
+      res.status(500).json({ message: "Failed to fetch chat history" });
+    }
+  });
+
+  // User routes
+  app.get("/api/user/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = await storage.getUser(id);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json({ ...user, password: undefined });
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  app.patch("/api/user/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      
+      // Remove sensitive fields
+      delete updates.id;
+      delete updates.password;
+      delete updates.createdAt;
+      
+      const user = await storage.updateUser(id, updates);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json({ ...user, password: undefined });
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
+
+import { type User, type InsertUser, type Product, type InsertProduct, type Analytics, type InsertAnalytics, type ChatMessage, type InsertChatMessage, type ProductWithMetrics, type CategoryPerformance, type GeographicData, type DashboardMetrics } from "@shared/schema";
+import { randomUUID } from "crypto";
+
+export interface IStorage {
+  // User methods
+  getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
+
+  // Product methods
+  getProducts(limit?: number, offset?: number, filters?: any): Promise<Product[]>;
+  getProduct(id: string): Promise<Product | undefined>;
+  createProduct(product: InsertProduct): Promise<Product>;
+  updateProduct(id: string, updates: Partial<Product>): Promise<Product | undefined>;
+  getProductsByCategory(category: string): Promise<Product[]>;
+  getTrendingProducts(limit?: number): Promise<ProductWithMetrics[]>;
+  getTopProfitProducts(limit?: number): Promise<ProductWithMetrics[]>;
+  getUnderperformingProducts(limit?: number): Promise<ProductWithMetrics[]>;
+
+  // Analytics methods
+  getAnalytics(productId?: string, startDate?: Date, endDate?: Date): Promise<Analytics[]>;
+  createAnalytics(analytics: InsertAnalytics): Promise<Analytics>;
+  getDashboardMetrics(): Promise<DashboardMetrics>;
+  getCategoryPerformance(): Promise<CategoryPerformance[]>;
+  getGeographicData(): Promise<GeographicData[]>;
+
+  // Chat methods
+  getChatMessages(userId: string, limit?: number): Promise<ChatMessage[]>;
+  createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
+
+  // Search and filter methods
+  searchProducts(query: string): Promise<Product[]>;
+  getProductCount(): Promise<number>;
+}
+
+export class MemStorage implements IStorage {
+  private users: Map<string, User>;
+  private products: Map<string, Product>;
+  private analytics: Map<string, Analytics>;
+  private chatMessages: Map<string, ChatMessage>;
+
+  constructor() {
+    this.users = new Map();
+    this.products = new Map();
+    this.analytics = new Map();
+    this.chatMessages = new Map();
+  }
+
+  // User methods
+  async getUser(id: string): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => user.email === email);
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const id = randomUUID();
+    const user: User = { 
+      ...insertUser,
+      location: insertUser.location || null,
+      businessName: insertUser.businessName || null,
+      id, 
+      subscriptionTier: "free",
+      createdAt: new Date() 
+    };
+    this.users.set(id, user);
+    return user;
+  }
+
+  async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const updatedUser = { ...user, ...updates };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  // Product methods
+  async getProducts(limit = 50, offset = 0, filters?: any): Promise<Product[]> {
+    let products = Array.from(this.products.values());
+    
+    if (filters) {
+      if (filters.category) {
+        products = products.filter(p => p.category === filters.category);
+      }
+      if (filters.minPrice) {
+        products = products.filter(p => parseFloat(p.price) >= filters.minPrice);
+      }
+      if (filters.maxPrice) {
+        products = products.filter(p => parseFloat(p.price) <= filters.maxPrice);
+      }
+      if (filters.minRating) {
+        products = products.filter(p => parseFloat(p.rating) >= filters.minRating);
+      }
+      if (filters.location) {
+        products = products.filter(p => 
+          p.locationData && typeof p.locationData === 'object' && 
+          Object.keys(p.locationData).includes(filters.location.toLowerCase())
+        );
+      }
+    }
+    
+    return products.slice(offset, offset + limit);
+  }
+
+  async getProduct(id: string): Promise<Product | undefined> {
+    return this.products.get(id);
+  }
+
+  async createProduct(insertProduct: InsertProduct): Promise<Product> {
+    const id = randomUUID();
+    const product: Product = { 
+      ...insertProduct,
+      description: insertProduct.description || null,
+      trending: insertProduct.trending || false,
+      id, 
+      createdAt: new Date() 
+    };
+    this.products.set(id, product);
+    return product;
+  }
+
+  async updateProduct(id: string, updates: Partial<Product>): Promise<Product | undefined> {
+    const product = this.products.get(id);
+    if (!product) return undefined;
+    
+    const updatedProduct = { ...product, ...updates };
+    this.products.set(id, updatedProduct);
+    return updatedProduct;
+  }
+
+  async getProductsByCategory(category: string): Promise<Product[]> {
+    return Array.from(this.products.values()).filter(p => p.category === category);
+  }
+
+  async getTrendingProducts(limit = 10): Promise<ProductWithMetrics[]> {
+    const products = Array.from(this.products.values())
+      .filter(p => p.trending)
+      .sort((a, b) => b.salesVolume - a.salesVolume)
+      .slice(0, limit);
+
+    return products.map(p => ({
+      ...p,
+      salesGrowth: Math.random() * 50 + 10, // Mock growth percentage
+      revenueGrowth: Math.random() * 40 + 5,
+      competitivePosition: "leading"
+    }));
+  }
+
+  async getTopProfitProducts(limit = 10): Promise<ProductWithMetrics[]> {
+    const products = Array.from(this.products.values())
+      .sort((a, b) => parseFloat(b.profitMargin) - parseFloat(a.profitMargin))
+      .slice(0, limit);
+
+    return products.map(p => ({
+      ...p,
+      salesGrowth: Math.random() * 30 + 5,
+      revenueGrowth: Math.random() * 25 + 3,
+      competitivePosition: "profitable"
+    }));
+  }
+
+  async getUnderperformingProducts(limit = 10): Promise<ProductWithMetrics[]> {
+    const products = Array.from(this.products.values())
+      .sort((a, b) => a.salesVolume - b.salesVolume)
+      .slice(0, limit);
+
+    return products.map(p => ({
+      ...p,
+      salesGrowth: -(Math.random() * 30 + 5), // Negative growth
+      revenueGrowth: -(Math.random() * 25 + 3),
+      competitivePosition: "needs attention"
+    }));
+  }
+
+  // Analytics methods
+  async getAnalytics(productId?: string, startDate?: Date, endDate?: Date): Promise<Analytics[]> {
+    let analytics = Array.from(this.analytics.values());
+    
+    if (productId) {
+      analytics = analytics.filter(a => a.productId === productId);
+    }
+    
+    if (startDate) {
+      analytics = analytics.filter(a => a.date >= startDate);
+    }
+    
+    if (endDate) {
+      analytics = analytics.filter(a => a.date <= endDate);
+    }
+    
+    return analytics;
+  }
+
+  async createAnalytics(insertAnalytics: InsertAnalytics): Promise<Analytics> {
+    const id = randomUUID();
+    const analytics: Analytics = { 
+      ...insertAnalytics,
+      productId: insertAnalytics.productId || null,
+      id 
+    };
+    this.analytics.set(id, analytics);
+    return analytics;
+  }
+
+  async getDashboardMetrics(): Promise<DashboardMetrics> {
+    const products = Array.from(this.products.values());
+    const analytics = Array.from(this.analytics.values());
+    
+    const totalRevenue = analytics.reduce((sum, a) => sum + parseFloat(a.revenue), 0);
+    const avgProfitMargin = products.reduce((sum, p) => sum + parseFloat(p.profitMargin), 0) / products.length;
+    const avgRating = products.reduce((sum, p) => sum + parseFloat(p.rating), 0) / products.length;
+    
+    return {
+      totalRevenue,
+      revenueGrowth: 12.3,
+      totalProducts: products.length,
+      productGrowth: 8.7,
+      avgProfitMargin,
+      marginGrowth: 2.1,
+      avgRating,
+      ratingGrowth: 0.3
+    };
+  }
+
+  async getCategoryPerformance(): Promise<CategoryPerformance[]> {
+    const products = Array.from(this.products.values());
+    const categories = Array.from(new Set(products.map(p => p.category)));
+    
+    return categories.map(category => {
+      const categoryProducts = products.filter(p => p.category === category);
+      const sales = categoryProducts.reduce((sum, p) => sum + p.salesVolume, 0);
+      const revenue = categoryProducts.reduce((sum, p) => sum + (p.salesVolume * parseFloat(p.price)), 0);
+      const profitMargin = categoryProducts.reduce((sum, p) => sum + parseFloat(p.profitMargin), 0) / categoryProducts.length;
+      
+      return {
+        category,
+        sales,
+        revenue,
+        profitMargin,
+        growth: Math.random() * 40 + 5 // Mock growth
+      };
+    });
+  }
+
+  async getGeographicData(): Promise<GeographicData[]> {
+    const locations = ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Kolkata', 'Pune'];
+    
+    return locations.map(location => ({
+      location,
+      sales: Math.floor(Math.random() * 50000 + 10000),
+      revenue: Math.floor(Math.random() * 1000000 + 200000),
+      conversionRate: Math.random() * 10 + 2
+    }));
+  }
+
+  // Chat methods
+  async getChatMessages(userId: string, limit = 50): Promise<ChatMessage[]> {
+    return Array.from(this.chatMessages.values())
+      .filter(m => m.userId === userId)
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+      .slice(0, limit);
+  }
+
+  async createChatMessage(insertMessage: InsertChatMessage): Promise<ChatMessage> {
+    const id = randomUUID();
+    const message: ChatMessage = { 
+      ...insertMessage,
+      userId: insertMessage.userId || null,
+      id, 
+      timestamp: new Date() 
+    };
+    this.chatMessages.set(id, message);
+    return message;
+  }
+
+  // Search methods
+  async searchProducts(query: string): Promise<Product[]> {
+    const lowerQuery = query.toLowerCase();
+    return Array.from(this.products.values()).filter(p => 
+      p.name.toLowerCase().includes(lowerQuery) ||
+      p.category.toLowerCase().includes(lowerQuery) ||
+      p.brand.toLowerCase().includes(lowerQuery)
+    );
+  }
+
+  async getProductCount(): Promise<number> {
+    return this.products.size;
+  }
+}
+
+export const storage = new MemStorage();
+
+import express, { type Express } from "express";
+import fs from "fs";
+import path from "path";
+import { createServer as createViteServer, createLogger } from "vite";
+import { type Server } from "http";
+import viteConfig from "../vite.config";
+import { nanoid } from "nanoid";
+
+const viteLogger = createLogger();
+
+export function log(message: string, source = "express") {
+  const formattedTime = new Date().toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+
+  console.log(`${formattedTime} [${source}] ${message}`);
+}
+
+export async function setupVite(app: Express, server: Server) {
+  const serverOptions = {
+    middlewareMode: true,
+    hmr: { server },
+    allowedHosts: true as const,
+  };
+
+  const vite = await createViteServer({
+    ...viteConfig,
+    configFile: false,
+    customLogger: {
+      ...viteLogger,
+      error: (msg, options) => {
+        viteLogger.error(msg, options);
+        process.exit(1);
+      },
+    },
+    server: serverOptions,
+    appType: "custom",
+  });
+
+  app.use(vite.middlewares);
+  app.use("*", async (req, res, next) => {
+    const url = req.originalUrl;
+
+    try {
+      const clientTemplate = path.resolve(
+        import.meta.dirname,
+        "..",
+        "client",
+        "index.html",
+      );
+
+      // always reload the index.html file from disk incase it changes
+      let template = await fs.promises.readFile(clientTemplate, "utf-8");
+      template = template.replace(
+        `src="/src/main.tsx"`,
+        `src="/src/main.tsx?v=${nanoid()}"`,
+      );
+      const page = await vite.transformIndexHtml(url, template);
+      res.status(200).set({ "Content-Type": "text/html" }).end(page);
+    } catch (e) {
+      vite.ssrFixStacktrace(e as Error);
+      next(e);
+    }
+  });
+}
+
+export function serveStatic(app: Express) {
+  const distPath = path.resolve(import.meta.dirname, "public");
+
+  if (!fs.existsSync(distPath)) {
+    throw new Error(
+      `Could not find the build directory: ${distPath}, make sure to build the client first`,
+    );
+  }
+
+  app.use(express.static(distPath));
+
+  // fall through to index.html if the file doesn't exist
+  app.use("*", (_req, res) => {
+    res.sendFile(path.resolve(distPath, "index.html"));
+  });
+}
+
+
+is my backend ready to be used, is the backend enough, is the backend idustrial level?
+
+so i can say its more less static backend for development, what if i want to add backend like fastapi, how can i use the endpoints for the same and how can i build a basic backend which can manipulate the data on frontend
+
+this is replit extracted, i want to add backend so that changes on backend shows some changes on frontend
