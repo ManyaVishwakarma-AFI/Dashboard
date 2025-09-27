@@ -7,3 +7,5 @@ openai
 passlib[bcrypt]
 pydantic-settings
 python-jose[cryptography]
+email-validator
+python-multipart
