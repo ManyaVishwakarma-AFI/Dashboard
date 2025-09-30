@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import func, or_, desc
+from sqlalchemy import func, or_, desc, case
 from . import models, schemas
 from typing import Optional, List
 from datetime import datetime
@@ -61,7 +61,18 @@ def search_reviews(db: Session, query: str, limit: int = 50):
 def get_review_statistics(db: Session):
     """Get overall review statistics"""
     total_reviews = db.query(func.count(models.AmazonReview.review_id)).scalar() or 0
-    avg_rating = db.query(func.avg(func.cast(models.AmazonReview.star_rating, db.Integer))).scalar() or 0
+
+    # Safely calculate average rating by casting only numeric values
+    avg_rating_query = func.avg(
+        case(
+            # Use GLOB for SQLite-compatible numeric check
+            (models.AmazonReview.star_rating.op("GLOB")("[0-9]*"),
+             func.cast(models.AmazonReview.star_rating, db.Integer)),
+            else_=None
+        )
+    )
+    avg_rating = db.query(avg_rating_query).scalar() or 0
+
     verified_count = db.query(func.count(models.AmazonReview.review_id)).filter(
         models.AmazonReview.verified_purchase == 'Y'
     ).scalar() or 0
@@ -98,17 +109,26 @@ def get_rating_distribution(db: Session):
 
 def get_category_statistics(db: Session):
     """Get statistics by product category"""
+    # Safe average rating calculation
+    avg_rating_expr = func.avg(
+        case(
+            (models.AmazonReview.star_rating.op("GLOB")("[0-9]*"),
+             func.cast(models.AmazonReview.star_rating, db.Integer)),
+            else_=None
+        )
+    ).label('avg_rating')
+
     categories = db.query(
         models.AmazonReview.product_category,
         func.count(models.AmazonReview.review_id).label('review_count'),
-        func.avg(func.cast(models.AmazonReview.star_rating, db.Integer)).label('avg_rating')
+        avg_rating_expr
     ).group_by(models.AmazonReview.product_category).all()
     
     return [
         {
-            "category": c[0],
-            "review_count": c[1],
-            "average_rating": float(c[2]) if c[2] else 0
+            "category": c.product_category,
+            "review_count": c.review_count,
+            "average_rating": float(c.avg_rating) if c.avg_rating else 0
         }
         for c in categories
     ]
@@ -116,11 +136,20 @@ def get_category_statistics(db: Session):
 
 def get_trending_products(db: Session, limit: int = 10):
     """Get products with most recent reviews"""
+    # Safe average rating calculation
+    avg_rating_expr = func.avg(
+        case(
+            (models.AmazonReview.star_rating.op("GLOB")("[0-9]*"),
+             func.cast(models.AmazonReview.star_rating, db.Integer)),
+            else_=None
+        )
+    ).label('avg_rating')
+
     products = db.query(
         models.AmazonReview.product_id,
         models.AmazonReview.product_title,
         func.count(models.AmazonReview.review_id).label('review_count'),
-        func.avg(func.cast(models.AmazonReview.star_rating, db.Integer)).label('avg_rating')
+        avg_rating_expr
     ).group_by(
         models.AmazonReview.product_id,
         models.AmazonReview.product_title
@@ -128,10 +157,10 @@ def get_trending_products(db: Session, limit: int = 10):
     
     return [
         {
-            "product_id": p[0],
-            "product_title": p[1],
-            "review_count": p[2],
-            "average_rating": float(p[3]) if p[3] else 0
+            "product_id": p.product_id,
+            "product_title": p.product_title,
+            "review_count": p.review_count,
+            "average_rating": float(p.avg_rating) if p.avg_rating else 0
         }
         for p in products
     ]
@@ -168,8 +197,15 @@ def get_monthly_review_trends(db: Session, year: Optional[str] = None):
 
 def get_helpful_reviews(db: Session, limit: int = 10):
     """Get most helpful reviews"""
+    # Safe casting for helpful_votes
+    safe_helpful_votes = case(
+        (models.AmazonReview.helpful_votes.op("GLOB")("[0-9]*"),
+         func.cast(models.AmazonReview.helpful_votes, db.Integer)),
+        else_=0
+    )
+
     return db.query(models.AmazonReview).order_by(
-        desc(func.cast(models.AmazonReview.helpful_votes, db.Integer))
+        desc(safe_helpful_votes)
     ).limit(limit).all()
 
 

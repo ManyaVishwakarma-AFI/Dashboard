@@ -9,3 +9,4 @@ pydantic-settings
 python-jose[cryptography]
 email-validator
 python-multipart
+pandas
