@@ -1,20 +1,4 @@
 from pydantic import BaseModel
-class DashboardMetrics(BaseModel):
-    total_users: int
-    total_products: int
-    total_sales: float
-    active_users: int
-    # Add more fields as needed for your dashboard
-
-class CategoryPerformance(BaseModel):
-    category: str
-    revenue: float
-    growth: float
-
-class GeographicData(BaseModel):
-    country: str
-    revenue: float
-    growth: float
 from typing import Optional, List
 from datetime import datetime
 
@@ -95,13 +79,3 @@ class MonthlyTrend(BaseModel):
     review_count: int
 
 
-class ReviewFilters(BaseModel):
-    """Filters for querying reviews"""
-    product_category: Optional[str] = None
-    star_rating: Optional[str] = None
-    sentiment_pc: Optional[str] = None
-    verified_purchase: Optional[str] = None
-    review_month: Optional[str] = None
-    review_year: Optional[str] = None
-    limit: int = 50
-    offset: int = 0
