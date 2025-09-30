@@ -12,6 +12,8 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  const fullUrl = new URL(url, window.location.origin).toString();
+  console.log("Requesting from Manya in query client >>>>>>>>>>:", fullUrl);
   const res = await fetch(url, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
