@@ -36,14 +36,14 @@ class AmazonReview(Base):
     review_year = Column(Text, index=True)
     
     # Sentiment Analysis
-    sentiment_pc = Column(Text, index=True)
+    sentiment_pc = Column("Sentiment_pc", Text, index=True)
     
     # Rating Breakdown
-    rating_1 = Column(Text)  # "1 rating" column
-    rating_2 = Column(Text)  # "2 ratings" column
-    rating_3 = Column(Text)  # "3 ratings" column
-    rating_4 = Column(Text)  # "4 rating" column
-    rating_5 = Column(Text)  # "5 rating" column
+    rating_1 = Column("1 rating", Text)
+    rating_2 = Column("2 ratings", Text)
+    rating_3 = Column("3 ratings", Text)
+    rating_4 = Column("4 rating", Text)
+    rating_5 = Column("5 rating", Text)
     
     def __repr__(self):
         return f"<AmazonReview(review_id={self.review_id}, product={self.product_title[:30]})>"
