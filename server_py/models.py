@@ -1,70 +1,49 @@
-from sqlalchemy import (
-    JSON,
-    Boolean,
-    Column,
-    DateTime,
-    Float,
-    ForeignKey,
-    Integer,
-    String,
-    Text,
-)
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, String, Text, Integer
 from .database import Base
 
-
-class User(Base):
-    __tablename__ = "users"
-
-    id = Column(String, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    password = Column(String, nullable=False)
-    location = Column(String, nullable=True)
-    businessName = Column(String, nullable=True)
-    subscriptionTier = Column(String, default="free")
-    createdAt = Column(DateTime, nullable=False)
-
-    chat_messages = relationship("ChatMessage", back_populates="user")
-
-
-class Product(Base):
-    __tablename__ = "products"
-
-    id = Column(String, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    category = Column(String, nullable=False)
-    price = Column(String, nullable=False)
-    rating = Column(String, nullable=False)
-    brand = Column(String, nullable=False)
-    description = Column(Text, nullable=True)
-    trending = Column(Boolean, default=False)
-    salesVolume = Column(Integer, nullable=False)
-    profitMargin = Column(String, nullable=False)
-    locationData = Column(JSON, nullable=True)
-    createdAt = Column(DateTime, nullable=False)
-
-    analytics = relationship("Analytics", back_populates="product")
-
-
-class Analytics(Base):
-    __tablename__ = "analytics"
-
-    id = Column(String, primary_key=True, index=True)
-    productId = Column(String, ForeignKey("products.id"), nullable=True)
-    date = Column(DateTime, nullable=False)
-    revenue = Column(String, nullable=False)
-    sales = Column(Integer, nullable=False)
-
-    product = relationship("Product", back_populates="analytics")
-
-
-class ChatMessage(Base):
-    __tablename__ = "chat_messages"
-
-    id = Column(String, primary_key=True, index=True)
-    userId = Column(String, ForeignKey("users.id"), nullable=True)
-    message = Column(Text, nullable=False)
-    response = Column(Text, nullable=False)
-    timestamp = Column(DateTime, nullable=False)
-
-    user = relationship("User", back_populates="chat_messages")
+class AmazonReview(Base):
+    """Amazon PC Reviews Model matching your CSV structure"""
+    __tablename__ = "amazon_pc_reviews"
+    
+    # Using review_id as primary key since it should be unique
+    review_id = Column(Text, primary_key=True, index=True)
+    
+    # Product Information
+    product_id = Column(Text, index=True)
+    product_parent = Column(Text)
+    product_title = Column(Text)
+    product_category = Column(Text, index=True)
+    
+    # Marketplace & Customer
+    market_place = Column(Text)
+    customer_id = Column(Text)
+    
+    # Review Content
+    review_headline = Column(Text)
+    review_body = Column(Text)
+    star_rating = Column(Text, index=True)  # Stored as TEXT from CSV
+    
+    # Review Metadata
+    helpful_votes = Column(Text)
+    total_votes = Column(Text)
+    vine = Column(Text)
+    verified_purchase = Column(Text, index=True)
+    
+    # Date Information
+    review_date = Column(Text)
+    review_month = Column(Text, index=True)  # e.g., "August"
+    review_day = Column(Text)
+    review_year = Column(Text, index=True)
+    
+    # Sentiment Analysis
+    sentiment_pc = Column(Text, index=True)
+    
+    # Rating Breakdown
+    rating_1 = Column(Text)  # "1 rating" column
+    rating_2 = Column(Text)  # "2 ratings" column
+    rating_3 = Column(Text)  # "3 ratings" column
+    rating_4 = Column(Text)  # "4 rating" column
+    rating_5 = Column(Text)  # "5 rating" column
+    
+    def __repr__(self):
+        return f"<AmazonReview(review_id={self.review_id}, product={self.product_title[:30]})>"

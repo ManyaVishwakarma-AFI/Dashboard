@@ -1,130 +1,107 @@
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, List, Dict, Any
-from datetime import datetime
-from decimal import Decimal
-
-
-# User Schemas
-class UserBase(BaseModel):
-    email: EmailStr
-    firstName: str
-    lastName: str
-    businessName: Optional[str] = None
-    location: Optional[str] = None
-
-
-class UserCreate(UserBase):
-    password: str
-
-
-class User(UserBase):
-    id: str
-    subscriptionTier: str
-    createdAt: datetime
-
-    class Config:
-        from_attributes = True
-
-
-# Product Schemas
-class ProductBase(BaseModel):
-    name: str
-    category: str
-    brand: str
-    description: Optional[str] = None
-    price: Decimal
-    competitorPrices: Dict[str, Any]
-    rating: Decimal
-    reviewCount: int
-    salesVolume: int
-    profitMargin: Decimal
-    stockLevel: int
-    locationData: Dict[str, Any]
-    launchDate: datetime
-    trending: bool = False
-
-
-class ProductCreate(ProductBase):
-    pass
-
-
-class Product(ProductBase):
-    id: str
-    createdAt: datetime
-
-    class Config:
-        from_attributes = True
-
-
-# Analytics Schemas
-class AnalyticsBase(BaseModel):
-    productId: Optional[str] = None
-    date: datetime
-    sales: int
-    revenue: Decimal
-    views: int
-    conversions: int
-    location: str
-
-
-class AnalyticsCreate(AnalyticsBase):
-    pass
-
-
-class Analytics(AnalyticsBase):
-    id: str
-
-    class Config:
-        from_attributes = True
-
-
-# ChatMessage Schemas
-class ChatMessageBase(BaseModel):
-    userId: Optional[str] = None
-    message: str
-
-
-class ChatMessageCreate(ChatMessageBase):
-    pass
-
-
-class ChatMessage(ChatMessageBase):
-    id: str
-    response: str
-    timestamp: datetime
-
-    class Config:
-        from_attributes = True
-
-
-# API Response Schemas
-class ProductWithMetrics(Product):
-    salesGrowth: float
-    revenueGrowth: float
-    competitivePosition: str
-
+from pydantic import BaseModel
+class DashboardMetrics(BaseModel):
+    total_users: int
+    total_products: int
+    total_sales: float
+    active_users: int
+    # Add more fields as needed for your dashboard
 
 class CategoryPerformance(BaseModel):
     category: str
-    sales: int
     revenue: float
-    profitMargin: float
     growth: float
 
-
 class GeographicData(BaseModel):
-    location: str
-    sales: int
+    country: str
     revenue: float
-    conversionRate: float
+    growth: float
+from typing import Optional, List
+from datetime import datetime
+
+class AmazonReviewBase(BaseModel):
+    """Base schema for Amazon Review"""
+    product_id: Optional[str] = None
+    market_place: Optional[str] = None
+    customer_id: Optional[str] = None
+    product_parent: Optional[str] = None
+    product_title: Optional[str] = None
+    product_category: Optional[str] = None
+    star_rating: Optional[str] = None
+    helpful_votes: Optional[str] = None
+    total_votes: Optional[str] = None
+    vine: Optional[str] = None
+    verified_purchase: Optional[str] = None
+    review_headline: Optional[str] = None
+    review_body: Optional[str] = None
+    review_date: Optional[str] = None
+    sentiment_pc: Optional[str] = None
+    review_month: Optional[str] = None
+    review_day: Optional[str] = None
+    review_year: Optional[str] = None
+    rating_1: Optional[str] = None
+    rating_2: Optional[str] = None
+    rating_3: Optional[str] = None
+    rating_4: Optional[str] = None
+    rating_5: Optional[str] = None
 
 
-class DashboardMetrics(BaseModel):
-    totalRevenue: float
-    revenueGrowth: float
-    totalProducts: int
-    productGrowth: float
-    avgProfitMargin: float
-    marginGrowth: float
-    avgRating: float
-    ratingGrowth: float
+class AmazonReview(AmazonReviewBase):
+    """Schema for reading Amazon Review from DB"""
+    review_id: str
+    
+    class Config:
+        from_attributes = True
+
+
+class ReviewStatistics(BaseModel):
+    """Statistics about reviews"""
+    total_reviews: int
+    average_rating: float
+    verified_purchases: int
+    verification_rate: float
+
+
+class SentimentDistribution(BaseModel):
+    """Sentiment distribution data"""
+    sentiment: str
+    count: int
+
+
+class RatingDistribution(BaseModel):
+    """Rating distribution data"""
+    rating: str
+    count: int
+
+
+class CategoryStats(BaseModel):
+    """Category statistics"""
+    category: str
+    review_count: int
+    average_rating: float
+
+
+class TrendingProduct(BaseModel):
+    """Trending product data"""
+    product_id: str
+    product_title: str
+    review_count: int
+    average_rating: float
+
+
+class MonthlyTrend(BaseModel):
+    """Monthly review trend"""
+    month: str
+    year: str
+    review_count: int
+
+
+class ReviewFilters(BaseModel):
+    """Filters for querying reviews"""
+    product_category: Optional[str] = None
+    star_rating: Optional[str] = None
+    sentiment_pc: Optional[str] = None
+    verified_purchase: Optional[str] = None
+    review_month: Optional[str] = None
+    review_year: Optional[str] = None
+    limit: int = 50
+    offset: int = 0
