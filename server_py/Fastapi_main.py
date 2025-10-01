@@ -104,5 +104,6 @@ def get_product_sentiment(product_id: str, db: Session = Depends(get_db)):
 
 # If you want to run this file directly for local development:
 if __name__ == "__main__":
-    # Run with UVicorn for development: uvicorn app.main:app --reload
-    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
+    # This block is for convenience but running the app as a module is recommended.
+    # From the root directory, run: uvicorn server_py.Fastapi_main:app --reload
+    uvicorn.run("server_py.Fastapi_main:app", host="127.0.0.1", port=8000, reload=True)
