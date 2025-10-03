@@ -91,7 +91,7 @@
     "@types/node": "20.16.11",
     "@types/passport": "^1.0.16",
     "@types/passport-local": "^1.0.38",
-    "@types/react": "^18.3.11",
+    "@types/react": "^18.3.25",
     "@types/react-dom": "^18.3.1",
     "@types/ws": "^8.5.13",
     "@vitejs/plugin-react": "^4.7.0",

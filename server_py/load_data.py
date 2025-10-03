@@ -1,6 +1,6 @@
 import pandas as pd
 from sqlalchemy.orm import Session
-from .database import SessionLocal, engine
+from .database_config import SessionLocal, engine
 from . import models
 
 # Path to the CSV file
