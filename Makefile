@@ -21,3 +21,15 @@ clean:
 # Freeze current environment into requirements.txt
 freeze:
 	uv pip freeze > requirements.txt
+
+start:
+	pm2 start uvicorn --name "fastapi-app" -- server_py.Fastapi_main:app --host 0.0.0.0 --port 9001 --reload
+
+pm2-stop:
+	pm2 stop fastapi-app
+
+pm2-restart:
+	pm2 restart fastapi-app
+
+pm2-logs:
+	pm2 logs fastapi-app
