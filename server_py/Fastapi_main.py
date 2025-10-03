@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -21,9 +21,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+"""class AIQuery(BaseModel):
+    question: str"""
 class AIQuery(BaseModel):
     question: str
-
+    source: str  # "products" or "amazon_reviews"
+    limit: Optional[int] = 50
+    
 def decimal_to_float(obj):
     if isinstance(obj, (int, float)):
         return obj
@@ -110,52 +114,111 @@ def analytics_by_category(db: Session = Depends(get_db)):
     categories = crud.get_category_analytics(db)
     return {"categories": categories}
 
+# @app.post("/ai/query")
+# def ask_ai(query: AIQuery):
+#     question = query.question
+
+#     with engine.connect() as conn:
+#         # Count products
+#         summary = conn.execute(text("SELECT COUNT(*) AS total FROM products"))
+#         total_products = summary.scalar()
+
+#         # Top products
+#         products = conn.execute(
+#             text("""
+#             SELECT id, category, brand, title, price, rating
+#             FROM products 
+#             ORDER BY reviews DESC 
+#             LIMIT 50
+#             """)
+#         )
+#         top_products = [dict(row._mapping) for row in products]
+
+#         # Recent Amazon reviews
+#         reviews = conn.execute(
+#             text("""
+#             SELECT product_id, star_rating, review_headline, review_body, review_date 
+#             FROM "Amazon_Reviews"
+#             ORDER BY review_date DESC 
+#             LIMIT 50
+#             """)
+#         )
+#         amazon_reviews = [dict(row._mapping) for row in reviews]
+
+#     # JSON safe
+#     top_products_json = json.dumps(top_products, indent=2, default=decimal_to_float)
+#     reviews_json = json.dumps(amazon_reviews, indent=2, default=decimal_to_float)
+
+#     # Prompt for AI
+#     prompt = f"""
+#     We have {total_products} products in the database.
+
+#     Top 50 products:
+#     {top_products_json}
+
+#     Recent Amazon reviews:
+#     {reviews_json}
+
+#     Question: {question}
+#     Answer in simple, human-readable text using the above context.
+#     """
+
+#     try:
+#         result = subprocess.run(
+#             ["ollama", "run", "mistral"],
+#             input=prompt,
+#             capture_output=True,
+#             text=True,
+#             encoding="utf-8",
+#             errors="ignore"
+#         )
+#         answer = result.stdout.strip()
+#     except Exception as e:
+#         answer = f"Error: {str(e)}"
+
+#     return {"answer": answer}
 @app.post("/ai/query")
-def ask_ai(query: AIQuery):
-    question = query.question
+def ask_ai(query: AIQuery, db: Session = Depends(get_db)):
+    limit = query.limit or 50  # default 50 if not provided
+    source = query.source.lower()
 
-    with engine.connect() as conn:
-        # Count products
-        summary = conn.execute(text("SELECT COUNT(*) AS total FROM products"))
-        total_products = summary.scalar()
-
-        # Top products
-        products = conn.execute(
-            text("""
+    if source == "products":
+        # Fetch top products only
+        rows = db.execute(
+            text(f"""
             SELECT id, category, brand, title, price, rating
-            FROM products 
-            ORDER BY reviews DESC 
-            LIMIT 50
+            FROM products
+            ORDER BY reviews DESC
+            LIMIT {limit}
             """)
-        )
-        top_products = [dict(row._mapping) for row in products]
-
-        # Recent Amazon reviews
-        reviews = conn.execute(
-            text("""
-            SELECT product_id, star_rating, review_headline, review_body, review_date 
+        ).all()
+        data_list = [dict(row._mapping) for row in rows]
+        table_name = "Products"
+    elif source == "amazon_reviews":
+        # Fetch recent Amazon reviews only
+        rows = db.execute(
+            text(f"""
+            SELECT product_title, star_rating, review_headline, review_body, review_date
             FROM "Amazon_Reviews"
-            ORDER BY review_date DESC 
-            LIMIT 50
+            ORDER BY review_date DESC
+            LIMIT {limit}
             """)
-        )
-        amazon_reviews = [dict(row._mapping) for row in reviews]
+        ).all()
+        data_list = [dict(row._mapping) for row in rows]
+        table_name = "Amazon Reviews"
+    else:
+        return {"error": "Invalid source. Use 'products' or 'amazon_reviews'."}
 
-    # JSON safe
-    top_products_json = json.dumps(top_products, indent=2, default=decimal_to_float)
-    reviews_json = json.dumps(amazon_reviews, indent=2, default=decimal_to_float)
+    # Convert to JSON safe for AI
+    data_json = json.dumps(data_list, indent=2, default=decimal_to_float)
 
-    # Prompt for AI
     prompt = f"""
-    We have {total_products} products in the database.
+    We have {len(data_list)} records in the {table_name} table.
 
-    Top 50 products:
-    {top_products_json}
+    Top {limit} entries:
+    {data_json}
 
-    Recent Amazon reviews:
-    {reviews_json}
-
-    Question: {question}
+    Question: {query.question}
     Answer in simple, human-readable text using the above context.
     """
 
@@ -173,6 +236,38 @@ def ask_ai(query: AIQuery):
         answer = f"Error: {str(e)}"
 
     return {"answer": answer}
+
+# @app.get("/products/top", response_model=List[schemas.Product])
+# def top_products_products_table(n: int = 10, db: Session = Depends(get_db)):
+#     """
+#     Fetch top N products from the products table based on rating.
+#     """
+#     return crud.get_top_products(db, n)
+
+# @app.get("/Amazon_Reviews/top", response_model=List[schemas.TopAmazonReview])
+# def top_products_amazon_reviews(n: int = 10, db: Session = Depends(get_db)):
+#     return crud.get_top_products_amazon(db, n)
+
+@app.get("/top")
+def get_top_items(
+    table: str = Query(..., description="Choose 'products' or 'amazon_reviews'"),
+    n: int = Query(10, description="Number of top items to fetch"),
+    db: Session = Depends(get_db),
+):
+    """
+    Fetch top N entries from either products or Amazon_Reviews table.
+    Use ?table=products or ?table=amazon_reviews
+    """
+    table = table.lower()
+    
+    if table == "products":
+        data = crud.get_top_products(db, n)
+        return {"table": "products", "count": len(data), "data": data}
+    elif table == "amazon_reviews":
+        data = crud.get_top_products_amazon(db, n)
+        return {"table": "amazon_reviews", "count": len(data), "data": data}
+    else:
+        return {"error": "Invalid table. Use 'products' or 'amazon_reviews'."}
 
 
 if __name__ == "__main__":
