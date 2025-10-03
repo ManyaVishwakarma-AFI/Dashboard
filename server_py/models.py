@@ -1,8 +1,8 @@
-from sqlalchemy import Column, String, Text, Integer
+from sqlalchemy import Column, String, Text, Integer, Float, Boolean, JSON, TIMESTAMP
 from .database_config import Base
 
 class AmazonReview(Base):
-    __tablename__ = "Amazon_Reviews"   # ✅ exact table name
+    __tablename__ = "Amazon_Reviews"   
 
     review_id = Column(String, primary_key=True, index=True)
 
@@ -29,3 +29,21 @@ class AmazonReview(Base):
     rating_3 = Column("3 ratings", Integer)
     rating_4 = Column("4 rating", Integer)
     rating_5 = Column("5 rating", Integer)
+
+
+class Product(Base):
+    __tablename__ = "products"  
+
+    id = Column(Integer, primary_key=True, index=True)
+    asin = Column(String(20), unique=True, nullable=False)
+    title = Column(Text, nullable=False)
+    brand = Column(Text, nullable=True)
+    category = Column(Text, nullable=True)
+    price = Column(Float, nullable=True)
+    currency = Column(String(5), nullable=True)
+    rating = Column(Float, nullable=True)
+    reviews = Column(Integer, nullable=True)
+    availability = Column(Boolean, nullable=True)
+    variation = Column(JSON, nullable=True)  # JSON column
+    image_url = Column(Text, nullable=True)
+    last_updated = Column(TIMESTAMP, nullable=True)

@@ -49,34 +49,52 @@ def search_reviews(query: str, limit: int = 50, db: Session = Depends(get_db)):
 def get_statistics(db: Session = Depends(get_db)):
     return crud.get_review_statistics(db)
 
-@app.get("/Amazon_Reviews/sentiment")
+@app.get("/Amazon_Reviews/sentiment", response_model=List[schemas.SentimentOut])
 def get_sentiment(db: Session = Depends(get_db)):
-    return crud.get_sentiment_distribution(db)
+    results = crud.get_sentiment_distribution(db)
+    return [schemas.SentimentOut(sentiment=sentiment, count=count) for sentiment, count in results]
 
-@app.get("/Amazon_Reviews/ratings")
+@app.get("/Amazon_Reviews/ratings", response_model=List[schemas.RatingOut])
 def get_ratings(db: Session = Depends(get_db)):
-    return crud.get_rating_distribution(db)
+    results = crud.get_ratings_distribution(db)
+    return [schemas.RatingOut(rating=rating, count=count) for rating, count in results]
 
-@app.get("/Amazon_Reviews/categories")
+@app.get("/Amazon_Reviews/categories", response_model=List[schemas.CategoryOut])
 def get_category_stats(db: Session = Depends(get_db)):
     return crud.get_category_statistics(db)
 
 # ----------- Analytics -------------
-@app.get("/Amazon_Reviews/trending")
+@app.get("/Amazon_Reviews/trending", response_model=List[schemas.TrendingProductOut])
 def get_trending(limit: int = 10, db: Session = Depends(get_db)):
     return crud.get_trending_products(db, limit)
 
-@app.get("/Amazon_Reviews/trends/monthly")
-def get_monthly_trends(year: str = None, db: Session = Depends(get_db)):
-    return crud.get_monthly_review_trends(db, year)
+@app.get("/Amazon_Reviews/trends/monthly", response_model=List[schemas.MonthlyTrendOut])
+def monthly_trends(year: int, db: Session = Depends(get_db)):
+    return crud.get_monthly_trends(db, year)
 
 @app.get("/Amazon_Reviews/helpful")
 def get_helpful(limit: int = 10, db: Session = Depends(get_db)):
     return crud.get_helpful_reviews(db, limit)
 
-@app.get("/Amazon_Reviews/sentiment/{product_id}")
-def get_product_sentiment(product_id: str, db: Session = Depends(get_db)):
+@app.get("/Amazon_Reviews/sentiment/{product_id}", response_model=List[schemas.SentimentOut])
+def get_sentiment(product_id: str, db: Session = Depends(get_db)):
     return crud.get_product_sentiment_breakdown(db, product_id)
+
+# ----------- Products -------------
+@app.get("/products", response_model=List[schemas.Product])
+def read_products(limit: int = 10, offset: int = 0, category: schemas.Optional[str] = None,
+                  min_price: schemas.Optional[float] = None, max_price: schemas.Optional[float] = None,
+                  db: Session = Depends(get_db)):
+    return crud.get_products(db, limit, offset, category, min_price, max_price)
+
+@app.get("/analytics/summary", response_model=schemas.Summary)
+def analytics_summary(db: Session = Depends(get_db)):
+    return crud.get_summary(db)
+
+@app.get("/analytics/category", response_model=schemas.CategoryAnalyticsResponse)
+def analytics_by_category(db: Session = Depends(get_db)):
+    categories = crud.get_category_analytics(db)
+    return {"categories": categories}
 
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

@@ -1,8 +1,4 @@
 import { useState } from "react";
-import { useAuth } from "@/App";
-import { useMutation } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 const LOCATIONS = [
   { value: "mumbai", label: "Mumbai, India" },
@@ -32,24 +28,15 @@ const TARGET_MARKETS = [
 ];
 
 export default function Settings() {
-  const user = { 
-    id: "demo-user", 
-    firstName: "Demo", 
-    lastName: "User", 
-    email: "demo@example.com", 
-    businessName: "Demo Store",
-    location: "mumbai", 
-    subscriptionTier: "free" 
-  }; // Mock user for demo
-  const login = () => {}; // No-op for demo
   const { toast } = useToast();
   
+  // Local state only - no backend API calls since your backend doesn't have user endpoints
   const [profileData, setProfileData] = useState({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    email: user?.email || "",
-    businessName: user?.businessName || "",
-    location: user?.location || "",
+    firstName: "Demo",
+    lastName: "User",
+    email: "demo@example.com",
+    businessName: "Demo Store",
+    location: "mumbai",
   });
 
   const [preferences, setPreferences] = useState({
@@ -60,31 +47,25 @@ export default function Settings() {
     shareUsageData: true,
   });
 
-  const updateProfileMutation = useMutation({
-    mutationFn: async (data: any) => {
-      if (!user?.id) throw new Error("User not found");
-      const response = await apiRequest("PATCH", `/api/user/${user.id}`, data);
-      return response.json();
-    },
-    onSuccess: (updatedUser) => {
-      login(updatedUser);
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been successfully updated.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Update failed",
-        description: error.message || "Failed to update profile",
-        variant: "destructive",
-      });
-    },
-  });
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateProfileMutation.mutate(profileData);
+    
+    // Simulate saving with local storage
+    setIsSaving(true);
+    
+    setTimeout(() => {
+      // Save to localStorage for persistence
+      localStorage.setItem('userProfile', JSON.stringify(profileData));
+      localStorage.setItem('userPreferences', JSON.stringify(preferences));
+      
+      setIsSaving(false);
+      toast({
+        title: "Settings saved",
+        description: "Your preferences have been saved locally.",
+      });
+    }, 500);
   };
 
   const handleInputChange = (field: string) => (
@@ -101,20 +82,59 @@ export default function Settings() {
     setPreferences(prev => ({ ...prev, [field]: checked }));
   };
 
-  const handleDeleteAccount = () => {
-    // In a real app, this would call an API to delete the account
-    toast({
-      title: "Account deletion",
-      description: "This feature is not available in the demo version.",
-      variant: "destructive",
-    });
+  const handleExportData = async () => {
+    try {
+      // Export reviews data from your backend
+      const response = await fetch('http://localhost:8000/Amazon_Reviews/reviews?limit=1000');
+      const data = await response.json();
+      
+      // Create CSV or JSON file
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `amazon-reviews-export-${new Date().toISOString()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Data exported",
+        description: "Your reviews data has been downloaded.",
+      });
+    } catch (error) {
+      toast({
+        title: "Export failed",
+        description: "Failed to export data. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleExportData = () => {
-    // In a real app, this would trigger a data export
+  const handleResetSettings = () => {
+    setProfileData({
+      firstName: "Demo",
+      lastName: "User",
+      email: "demo@example.com",
+      businessName: "Demo Store",
+      location: "mumbai",
+    });
+    
+    setPreferences({
+      emailNotifications: true,
+      priceAlerts: true,
+      trendAlerts: false,
+      targetMarket: "national",
+      shareUsageData: true,
+    });
+    
+    localStorage.removeItem('userProfile');
+    localStorage.removeItem('userPreferences');
+    
     toast({
-      title: "Data export",
-      description: "Your data export has been initiated. You'll receive an email when ready.",
+      title: "Settings reset",
+      description: "All settings have been reset to defaults.",
     });
   };
 
@@ -130,22 +150,32 @@ export default function Settings() {
               Settings
             </h2>
             <p className="text-sm text-muted-foreground">
-              Manage your account preferences and configurations
+              Manage your preferences and configurations
             </p>
           </div>
         </header>
 
         <div className="p-6">
           <div className="max-w-4xl mx-auto space-y-6">
+            {/* Info Banner */}
+            <Card className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900">
+              <CardContent className="pt-6">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  <strong>Note:</strong> Settings are saved locally in your browser. 
+                  Your backend focuses on Amazon Reviews data and doesn't include user management.
+                </p>
+              </CardContent>
+            </Card>
+
             {/* Profile Settings */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   Profile Settings
-                  <Badge variant="secondary">{user?.subscriptionTier}</Badge>
+                  <Badge variant="secondary">Local Storage</Badge>
                 </CardTitle>
                 <CardDescription>
-                  Update your personal information and business details
+                  Update your personal information (saved locally)
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -209,31 +239,40 @@ export default function Settings() {
                     </Select>
                   </div>
 
-                  <Button 
-                    type="submit" 
-                    disabled={updateProfileMutation.isPending}
-                    data-testid="button-save-profile"
-                  >
-                    {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      type="submit" 
+                      disabled={isSaving}
+                      data-testid="button-save-profile"
+                    >
+                      {isSaving ? "Saving..." : "Save Changes"}
+                    </Button>
+                    <Button 
+                      type="button"
+                      variant="outline"
+                      onClick={handleResetSettings}
+                    >
+                      Reset to Defaults
+                    </Button>
+                  </div>
                 </form>
               </CardContent>
             </Card>
 
-            {/* Notification Settings */}
+            {/* Display Preferences */}
             <Card>
               <CardHeader>
-                <CardTitle>Notifications</CardTitle>
+                <CardTitle>Display Preferences</CardTitle>
                 <CardDescription>
-                  Configure how you want to receive updates and alerts
+                  Configure how you want to view data
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <Label className="text-sm font-medium">Email Notifications</Label>
+                    <Label className="text-sm font-medium">Show Email Notifications</Label>
                     <p className="text-sm text-muted-foreground">
-                      Receive daily analytics reports and insights
+                      Display notification indicators in the interface
                     </p>
                   </div>
                   <Switch
@@ -249,7 +288,7 @@ export default function Settings() {
                   <div className="space-y-1">
                     <Label className="text-sm font-medium">Price Alerts</Label>
                     <p className="text-sm text-muted-foreground">
-                      Get notified of significant price changes in your tracked products
+                      Highlight products with significant rating changes
                     </p>
                   </div>
                   <Switch
@@ -265,7 +304,7 @@ export default function Settings() {
                   <div className="space-y-1">
                     <Label className="text-sm font-medium">Trend Alerts</Label>
                     <p className="text-sm text-muted-foreground">
-                      Alert when products start trending in your market
+                      Highlight trending products in dashboard
                     </p>
                   </div>
                   <Switch
@@ -277,17 +316,17 @@ export default function Settings() {
               </CardContent>
             </Card>
 
-            {/* Location & Demographics */}
+            {/* Target Market */}
             <Card>
               <CardHeader>
-                <CardTitle>Location & Demographics</CardTitle>
+                <CardTitle>Target Market Focus</CardTitle>
                 <CardDescription>
-                  Configure your target market and regional preferences
+                  Choose your primary market focus
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Target Markets</Label>
+                  <Label>Target Market</Label>
                   <Select 
                     value={preferences.targetMarket} 
                     onValueChange={(value) => setPreferences(prev => ({ ...prev, targetMarket: value }))}
@@ -307,68 +346,61 @@ export default function Settings() {
               </CardContent>
             </Card>
 
-            {/* Data & Privacy */}
+            {/* Data Export */}
             <Card>
               <CardHeader>
-                <CardTitle>Data & Privacy</CardTitle>
+                <CardTitle>Data Management</CardTitle>
                 <CardDescription>
-                  Manage your data and privacy preferences
+                  Export your Amazon reviews data
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label className="text-sm font-medium">Share Anonymous Usage Data</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Help improve our AI models with anonymized usage patterns
-                    </p>
-                  </div>
-                  <Switch
-                    checked={preferences.shareUsageData}
-                    onCheckedChange={handlePreferenceChange("shareUsageData")}
-                    data-testid="switch-share-usage"
-                  />
-                </div>
-
-                <Separator />
-
+              <CardContent className="space-y-4">
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button 
                     variant="outline"
                     onClick={handleExportData}
                     data-testid="button-export-data"
                   >
-                    Download My Data
+                    Export Reviews Data (JSON)
                   </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      toast({
+                        title: "API Documentation",
+                        description: "Access API docs at http://localhost:8000/docs",
+                      });
+                      window.open('http://localhost:8000/docs', '_blank');
+                    }}
+                  >
+                    View API Documentation
+                  </Button>
+                </div>
+                
+                <p className="text-sm text-muted-foreground">
+                  Export data directly from your Amazon Reviews database via the API
+                </p>
+              </CardContent>
+            </Card>
 
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button 
-                        variant="destructive"
-                        data-testid="button-delete-account"
-                      >
-                        Delete Account
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. This will permanently delete your account
-                          and remove your data from our servers.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={handleDeleteAccount}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                          Yes, delete my account
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+            {/* Backend Info */}
+            <Card className="bg-muted/50">
+              <CardHeader>
+                <CardTitle className="text-lg">Backend Connection</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">API Endpoint:</span>
+                  <span className="font-mono">http://localhost:8000</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Database:</span>
+                  <span className="font-mono">Amazon_Reviews</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Available Endpoints:</span>
+                  <span>/Amazon_Reviews/*</span>
                 </div>
               </CardContent>
             </Card>
