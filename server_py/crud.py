@@ -153,10 +153,34 @@ def get_summary(db: Session) -> Dict[str, Any]:
     return dict(result.mappings().first())
 
 # Top products
-def get_top_products(db: Session, n: int, by: str) -> List[Dict[str, Any]]:
+"""def get_top_products(db: Session, n: int, by: str) -> List[Dict[str, Any]]:
     query = f"SELECT * FROM products ORDER BY {by} DESC LIMIT :n"
     result = db.execute(text(query), {"n": n})
-    return [dict(row._mapping) for row in result]
+    return [dict(row._mapping) for row in result]"""
+
+
+def get_top_products(db: Session, n: int):
+    return db.query(models.Product).order_by(models.Product.rating.desc()).limit(n).all()
+
+def get_top_products_amazon(db: Session, n: int):
+    """
+    Get top N products by number of reviews with average rating
+    """
+    result = (
+        db.query(
+            models.AmazonReview.product_title,
+            func.avg(models.AmazonReview.star_rating).label("avg_rating"),
+            func.count(models.AmazonReview.review_id).label("review_count")
+        )
+        .group_by(models.AmazonReview.product_title)
+        .order_by(func.count(models.AmazonReview.review_id).desc())
+        .limit(n)
+        .all()
+    )
+    # Convert SQLAlchemy Row objects to dicts
+    return [dict(product_title=r.product_title, avg_rating=r.avg_rating, review_count=r.review_count) for r in result]
+
+
 
 # Category analytics
 def get_category_analytics(db: Session) -> List[Dict[str, Any]]:
