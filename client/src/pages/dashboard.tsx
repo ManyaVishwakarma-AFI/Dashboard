@@ -1,4 +1,7 @@
 // ============================================
+// FILE: src/pages/dashboard.tsx (CORRECTED)
+// ============================================
+
 // FILE 1: src/pages/dashboard.tsx (COMPLETE REPLACEMENT)
 // ============================================
 import { useEffect, useState } from "react";
@@ -8,6 +11,9 @@ import FiltersPanel from "@/components/dashboard/filters-panel";
 import ChartsGrid from "@/components/dashboard/charts-grid";
 import ProductRankings from "@/components/dashboard/product-rankings";
 import { Button } from "@/components/ui/button";
+import { Bell } from "lucide-react";
+
+export default function Dashboard() {
 import { Bell, X, Filter } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -43,6 +49,7 @@ export default function Dashboard() {
         <header className="bg-card border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-20">
           <div className="flex items-center space-x-4">
             <div>
+              <h2 className="text-xl font-semibold">Amazon Reviews Dashboard</h2>
               <h2 className="text-xl font-semibold">
                Sellers Dashboard
               </h2>
@@ -52,6 +59,13 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex items-center space-x-4">
+            <Button variant="ghost" size="sm">
+              <Bell className="h-4 w-4" />
+            </Button>
+          </div>
+        </header>
+
+        <div className="p-6 space-y-6">
             <Button variant="ghost" size="sm"
               onClick={() => setShowFilters(prev => !prev)}
           >

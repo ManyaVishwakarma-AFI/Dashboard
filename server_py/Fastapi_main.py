@@ -98,6 +98,7 @@ def get_ratings(db: Session = Depends(get_db)):
 def get_category_stats(db: Session = Depends(get_db)):
     return crud.get_category_statistics(db)
 
+# ----------- Analytics -------------
 
 # --------------------------
 # Analytics Endpoints
@@ -115,6 +116,14 @@ def get_helpful(limit: int = 10, db: Session = Depends(get_db)):
     return crud.get_helpful_reviews(db, limit)
 
 @app.get("/Amazon_Reviews/sentiment/{product_id}", response_model=List[schemas.SentimentOut])
+def get_sentiment(product_id: str, db: Session = Depends(get_db)):
+    return crud.get_product_sentiment_breakdown(db, product_id)
+
+# ----------- Products -------------
+@app.get("/products", response_model=List[schemas.Product])
+def read_products(limit: int = 10, offset: int = 0, category: schemas.Optional[str] = None,
+                  min_price: schemas.Optional[float] = None, max_price: schemas.Optional[float] = None,
+                  db: Session = Depends(get_db)):
 def get_sentiment_breakdown(product_id: str, db: Session = Depends(get_db)):
     return crud.get_product_sentiment_breakdown(db, product_id)
 
