@@ -112,3 +112,4 @@ class CategoryAnalyticsResponse(BaseModel):
 
 class AIQuery(BaseModel):
     question: str
+
