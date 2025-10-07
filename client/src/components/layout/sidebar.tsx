@@ -1,13 +1,14 @@
-import { useState } from "react";
+// ============================================
+// FILE: src/components/layout/sidebar.tsx (UPDATED)
+// ============================================
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { useAuth } from "@/App";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { 
   ChartLine, 
   Home, 
-  Crown, 
   Info, 
   Settings, 
   LogOut,
@@ -15,31 +16,49 @@ import {
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 const NAVIGATION_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
-  { href: "/subscription", label: "Subscription", icon: Crown },
   { href: "/about", label: "About", icon: Info },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export default function Sidebar() {
-  const [location] = useLocation();
-  const user = { firstName: "Demo", lastName: "User", subscriptionTier: "free" }; // Mock user for demo
-  const logout = () => {}; // No-op for demo
+  const [location, setLocation] = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const { toast } = useToast();
 
-  const getUserInitials = () => {
-    if (!user) return "U";
-    return `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase();
+  useEffect(() => {
+    // Load user from localStorage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, [location]); // Reload on location change
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('userProfile');
+    localStorage.removeItem('userPreferences');
+    localStorage.removeItem('rememberMe');
+    
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out.",
+    });
+    
+    setLocation('/login');
   };
 
-  const getSubscriptionColor = (tier: string) => {
-    switch (tier) {
-      case "premium": return "bg-gradient-to-r from-yellow-400 to-orange-500";
-      case "basic": return "bg-primary";
-      default: return "bg-muted";
+  const getUserInitials = () => {
+    if (!user?.name) return "U";
+    const names = user.name.split(' ');
+    if (names.length >= 2) {
+      return `${names[0][0]}${names[1][0]}`.toUpperCase();
     }
+    return user.name[0].toUpperCase();
   };
 
   return (
@@ -59,7 +78,6 @@ export default function Sidebar() {
           "lg:translate-x-0",
           isCollapsed ? "-translate-x-full lg:translate-x-0" : "translate-x-0"
         )}
-        data-testid="sidebar"
       >
         {/* Header */}
         <div className="p-6 border-b border-border">
@@ -70,8 +88,8 @@ export default function Sidebar() {
               </div>
               {!isCollapsed && (
                 <div>
-                  <h1 className="font-bold text-xl">EcomAI</h1>
-                  <p className="text-sm text-muted-foreground">Analytics</p>
+                  <h1 className="font-bold text-lg">Reviews</h1>
+                  <p className="text-xs text-muted-foreground">Analytics</p>
                 </div>
               )}
             </div>
@@ -81,7 +99,6 @@ export default function Sidebar() {
               size="sm"
               onClick={() => setIsCollapsed(!isCollapsed)}
               className="lg:hidden"
-              data-testid="button-toggle-sidebar"
             >
               {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
             </Button>
@@ -103,7 +120,6 @@ export default function Sidebar() {
                     "w-full justify-start",
                     isCollapsed && "justify-center px-2"
                   )}
-                  data-testid={`nav-item-${item.label.toLowerCase()}`}
                 >
                   <Icon className={cn("h-5 w-5", !isCollapsed && "mr-3")} />
                   {!isCollapsed && <span>{item.label}</span>}
@@ -113,7 +129,7 @@ export default function Sidebar() {
           })}
         </nav>
 
-        {/* Profile Section */}
+        {/* User Profile Section */}
         <div className="absolute bottom-4 left-4 right-4">
           <div className={cn(
             "flex items-center p-3 bg-muted rounded-lg",
@@ -128,31 +144,28 @@ export default function Sidebar() {
             {!isCollapsed && (
               <div className="flex-1 ml-3 min-w-0">
                 <p className="font-medium text-sm truncate">
-                  {user?.firstName} {user?.lastName}
+                  {user?.name || "User"}
                 </p>
-                <div className="flex items-center space-x-2">
-                  <Badge 
-                    variant="secondary"
-                    className={cn(
-                      "text-xs",
-                      getSubscriptionColor(user?.subscriptionTier || "free")
-                    )}
-                  >
-                    {user?.subscriptionTier || "Free"} Plan
-                  </Badge>
-                </div>
+                {user?.businessName && (
+                  <p className="text-xs text-muted-foreground truncate">
+                    {user.businessName}
+                  </p>
+                )}
+                <Badge variant="secondary" className="text-xs mt-1">
+                  Free Plan
+                </Badge>
               </div>
             )}
             
             <Button
               variant="ghost"
               size="sm"
-              onClick={logout}
+              onClick={handleLogout}
               className={cn(
                 "text-muted-foreground hover:text-foreground",
                 isCollapsed && "p-2"
               )}
-              data-testid="button-logout"
+              title="Logout"
             >
               <LogOut className="h-4 w-4" />
             </Button>
@@ -162,3 +175,5 @@ export default function Sidebar() {
     </>
   );
 }
+
+

@@ -1,17 +1,15 @@
 // ============================================
-// FILE: src/components/dashboard/metrics-cards.tsx (CORRECTED)
+// FILE 2: src/components/dashboard/metrics-cards.tsx (COMPLETE)
 // ============================================
-
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
-  TrendingUp, 
-  TrendingDown, 
-  ShoppingCart, 
+  MessageSquare, 
   Star,
-  MessageSquare
+  ShoppingCart,
+  Package
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
@@ -27,25 +25,24 @@ interface MetricCardProps {
 function MetricCard({ title, value, icon, color, isLoading }: MetricCardProps) {
   if (isLoading) {
     return (
-      <Card className="metric-card bg-card rounded-xl p-6 border shadow-sm">
+      <Card className="bg-card rounded-xl p-6 border shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <div className={cn("p-3 rounded-lg", color)}>
-            <Skeleton className="h-6 w-6" />
-          </div>
+          <Skeleton className="h-10 w-10 rounded-lg" />
+          <Skeleton className="h-5 w-12" />
         </div>
-        <Skeleton className="h-8 w-32 mb-2" />
-        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-8 w-24 mb-2" />
+        <Skeleton className="h-4 w-32" />
       </Card>
     );
   }
 
   return (
-    <Card className="metric-card bg-card rounded-xl p-6 border shadow-sm hover:shadow-md transition-shadow">
+    <Card className="bg-card rounded-xl p-6 border shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between mb-4">
         <div className={cn("p-3 rounded-lg", color)}>
           {icon}
         </div>
-        <Badge variant="secondary" className="ai-badge text-xs">Live</Badge>
+        <Badge variant="secondary" className="text-xs">Live</Badge>
       </div>
       
       <h3 className="text-2xl font-bold text-foreground mb-1">
@@ -65,10 +62,13 @@ export default function MetricsCards() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log('Fetching metrics data...');
         const [stats, cats] = await Promise.all([
           api.getStatistics(),
           api.getCategoryStatistics()
         ]);
+        console.log('Stats:', stats);
+        console.log('Categories:', cats);
         setStatistics(stats);
         setCategories(cats);
       } catch (error) {
@@ -92,25 +92,25 @@ export default function MetricsCards() {
       title: "Total Reviews",
       value: statistics ? formatNumber(statistics.total_reviews) : "0",
       icon: <MessageSquare className="text-blue-600 h-6 w-6" />,
-      color: "bg-blue-100"
+      color: "bg-blue-100 dark:bg-blue-900/20"
     },
     {
       title: "Average Rating",
       value: statistics?.average_rating ? statistics.average_rating.toFixed(1) : "0.0",
       icon: <Star className="text-yellow-600 h-6 w-6" />,
-      color: "bg-yellow-100"
-    },
-    {
-      title: "Products",
-      value: categories.length.toString(),
-      icon: <ShoppingCart className="text-green-600 h-6 w-6" />,
-      color: "bg-green-100"
+      color: "bg-yellow-100 dark:bg-yellow-900/20"
     },
     {
       title: "Categories",
       value: categories.length.toString(),
-      icon: <TrendingUp className="text-purple-600 h-6 w-6" />,
-      color: "bg-purple-100"
+      icon: <Package className="text-purple-600 h-6 w-6" />,
+      color: "bg-purple-100 dark:bg-purple-900/20"
+    },
+    {
+      title: "Products",
+      value: categories.length > 0 ? formatNumber(categories.reduce((sum, cat) => sum + cat.review_count, 0)) : "0",
+      icon: <ShoppingCart className="text-green-600 h-6 w-6" />,
+      color: "bg-green-100 dark:bg-green-900/20"
     }
   ];
 
@@ -129,3 +129,4 @@ export default function MetricsCards() {
     </div>
   );
 }
+
