@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { 
   ChartLine, 
+  Crown,
   Home, 
   Info, 
   Settings, 
@@ -17,11 +18,14 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import useAuth from "@/App";
+
 
 const NAVIGATION_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/about", label: "About", icon: Info },
   { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/subscription", label: "Subscription", icon: Crown },
 ];
 
 export default function Sidebar() {
@@ -59,6 +63,18 @@ export default function Sidebar() {
       return `${names[0][0]}${names[1][0]}`.toUpperCase();
     }
     return user.name[0].toUpperCase();
+  };
+
+    // ✅ Dynamic color for subscription tier
+  const getSubscriptionColor = (tier: string) => {
+    switch (tier?.toLowerCase()) {
+      case "premium":
+        return "bg-gradient-to-r from-yellow-400 to-orange-500 text-white";
+      case "basic":
+        return "bg-primary text-white";
+      default:
+        return "bg-muted text-foreground";
+    }
   };
 
   return (
@@ -141,18 +157,25 @@ export default function Sidebar() {
               </AvatarFallback>
             </Avatar>
             
-            {!isCollapsed && (
+             {!isCollapsed && (
               <div className="flex-1 ml-3 min-w-0">
                 <p className="font-medium text-sm truncate">
-                  {user?.name || "User"}
+                  {user
+                    ? `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
+                      user.name ||
+                      "User"
+                    : "User"}
                 </p>
-                {user?.businessName && (
-                  <p className="text-xs text-muted-foreground truncate">
-                    {user.businessName}
-                  </p>
-                )}
-                <Badge variant="secondary" className="text-xs mt-1">
-                  Free Plan
+                <Badge
+                  variant="secondary"
+                  className={cn(
+                    "text-xs mt-1",
+                    getSubscriptionColor(user?.subscriptionTier || "Free")
+                  )}
+                >
+                  {user?.subscriptionTier
+                    ? `${user.subscriptionTier} Plan`
+                    : "Free Plan"}
                 </Badge>
               </div>
             )}
