@@ -1,6 +1,12 @@
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 from datetime import datetime
+
+class TopAmazonReview(BaseModel):
+    product_title: str
+    avg_rating: float
+    review_count: int
+
 class MonthlyTrendOut(BaseModel):
     month: str
     review_count: int
