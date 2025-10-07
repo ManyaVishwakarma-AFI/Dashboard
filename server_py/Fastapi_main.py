@@ -185,18 +185,11 @@ def filter_reviews(
 
 @app.get("/Amazon_Reviews/filters")
 def get_available_filters(db: Session = Depends(get_db)):
-    # ----- Categories from both tables -----
-    review_categories = db.query(models.AmazonReview.product_category).distinct().all()
+    # ----- Categories from Product table -----
     product_categories = db.query(models.Product.category).distinct().all()
+    categories = sorted([c[0] for c in product_categories if c[0]])
 
-    # Flatten and remove None values
-    review_categories = [c[0] for c in review_categories if c[0]]
-    product_categories = [c[0] for c in product_categories if c[0]]
-
-    # Merge and remove duplicates
-    categories = sorted(list(set(review_categories + product_categories)))
-
-    # ----- Ratings only from reviews -----
+    # ----- Ratings from AmazonReview table -----
     # Assuming your columns are: rating_1, rating_2, rating_3, rating_4, rating_5
     ratings_columns = [
         models.AmazonReview.rating_1,
@@ -217,6 +210,14 @@ def get_available_filters(db: Session = Depends(get_db)):
         "ratings": ratings_available
     }
 
+@app.get("/top_forecast")
+def top_forecasted_products(n: int = Query(10, description="Number of top products"), db: Session = Depends(get_db)):
+    """
+    Fetch top N products by forecasted next price
+    """
+    forecast_list = crud.get_top_forecasted_products(db, n)
+    return {"table": "products_forecast", "count": len(forecast_list), "data": forecast_list}    
+ 
 # --------------------------
 # Run server
 # --------------------------
