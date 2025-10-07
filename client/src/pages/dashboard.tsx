@@ -4,15 +4,17 @@
 import { useEffect, useState } from "react";
 import Sidebar from "@/components/layout/sidebar";
 import MetricsCards from "@/components/dashboard/metrics-cards";
+import FiltersPanel from "@/components/dashboard/filters-panel";
 import ChartsGrid from "@/components/dashboard/charts-grid";
 import ProductRankings from "@/components/dashboard/product-rankings";
 import { Button } from "@/components/ui/button";
-import { Bell, X } from "lucide-react";
+import { Bell, X, Filter } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -42,7 +44,7 @@ export default function Dashboard() {
           <div className="flex items-center space-x-4">
             <div>
               <h2 className="text-xl font-semibold">
-                Amazon Reviews Dashboard
+               Sellers Dashboard
               </h2>
               <p className="text-sm text-muted-foreground">
                 Real-time analytics from your review database
@@ -50,11 +52,25 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex items-center space-x-4">
+            <Button variant="ghost" size="sm"
+              onClick={() => setShowFilters(prev => !prev)}
+          >
+              <Filter className="h-4 w-4 mr-1" />
+              Filters
+            </Button>
+
             <Button variant="ghost" size="sm">
-              <Bell className="h-4 w-4" />
+               <Bell className="h-4 w-4" />
             </Button>
           </div>
         </header>
+
+        {/* Filters panel - collapsible */}
+        {showFilters && (
+          <div className="px-6 py-4 border-b border-border bg-card transition-all duration-300">
+            <FiltersPanel />
+          </div>
+        )}
 
         <div className="p-6 space-y-6">
           {/* Welcome Message */}
@@ -96,3 +112,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

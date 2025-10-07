@@ -174,3 +174,10 @@ def get_category_analytics(db: Session) -> List[Dict[str, Any]]:
     result = db.execute(text(query))
     return [dict(row._mapping) for row in result]
 
+def get_filters(db: Session):
+    query = db.execute("SELECT DISTINCT category, brand FROM amazon_reviews")
+    results = query.fetchall()
+    filters = []
+    for row in results:
+        filters.append(dict(row._mapping))  
+    return filters
