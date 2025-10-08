@@ -17,5 +17,6 @@ dependencies = [
     "python-jose[cryptography]",
     "email-validator",
     "python-multipart",
-    "pandas"
+    "pandas",
+    "tensorflow>=2.20.0",
 ]

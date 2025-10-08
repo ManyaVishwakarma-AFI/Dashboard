@@ -8,6 +8,7 @@ import subprocess, json
 from pydantic import BaseModel
 import uvicorn
 from sqlalchemy import func
+from sklearn.preprocessing import MinMaxScaler
 
 from . import crud, schemas, models
 from .database_config import get_db, engine
@@ -121,12 +122,15 @@ def get_sentiment(product_id: str, db: Session = Depends(get_db)):
 
 # ----------- Products -------------
 @app.get("/products", response_model=List[schemas.Product])
-def read_products(limit: int = 10, offset: int = 0, category: schemas.Optional[str] = None,
-                  min_price: schemas.Optional[float] = None, max_price: schemas.Optional[float] = None,
-                  db: Session = Depends(get_db)):
-def get_sentiment_breakdown(product_id: str, db: Session = Depends(get_db)):
-    return crud.get_product_sentiment_breakdown(db, product_id)
-
+def read_products(
+    limit: int = 10,
+    offset: int = 0,
+    category: Optional[str] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    db: Session = Depends(get_db)
+):
+    return crud.get_products(db, limit, offset, category, min_price, max_price)
 
 # --------------------------
 # Products Endpoints
