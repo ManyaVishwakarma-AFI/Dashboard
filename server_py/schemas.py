@@ -1,6 +1,28 @@
-from pydantic import BaseModel
+from pydantic import BaseModel,EmailStr
 from typing import Optional, Dict, Any, List
 from datetime import datetime
+
+# For creating a new user
+class UserCreate(BaseModel):
+    first_name: str
+    last_name: str
+    email: EmailStr
+    password: str
+    business_name: Optional[str] = None
+    location: Optional[str] = None
+    business_interests: Optional[List[str]] = []
+
+# For returning user info (without password)
+class UserOut(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    email: EmailStr
+    business_name: Optional[str] = None
+    location: Optional[str] = None
+    business_interests: Optional[List[str]] = []
+    created_at: datetime
+    updated_at: datetime
 
 class TopAmazonReview(BaseModel):
     product_title: str

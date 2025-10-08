@@ -47,3 +47,17 @@ class Product(Base):
     variation = Column(JSON, nullable=True)  # JSON column
     image_url = Column(Text, nullable=True)
     last_updated = Column(TIMESTAMP, nullable=True)
+
+from sqlalchemy import Column, Integer, String, ARRAY, Boolean
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    first_name = Column(String, nullable=False)
+    last_name = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False, index=True)
+    password_hash = Column(String, nullable=False)
+    business_name = Column(String)
+    location = Column(String, nullable=False)
+    business_interests = Column(ARRAY(String), nullable=False)
+    is_active = Column(Boolean, default=True)

@@ -8,9 +8,9 @@ import subprocess, json
 from pydantic import BaseModel
 import uvicorn
 from sqlalchemy import func
-
 from . import crud, schemas, models
 from .database_config import get_db, engine
+
 
 # --------------------------
 # DB initialization
@@ -142,102 +142,6 @@ def analytics_by_category(db: Session = Depends(get_db)):
     categories = crud.get_category_analytics(db)
     return {"categories": categories}
 
-
-# ==========================================================
-# 🔍 FILTERS ENDPOINTS (Merged here)
-# ==========================================================
-
-# 2️⃣ Filter Products
-@app.get("/products/filter", response_model=List[schemas.Product])
-def filter_products(
-    category: Optional[str] = Query(None),
-    min_price: Optional[float] = Query(None),
-    max_price: Optional[float] = Query(None),
-    min_rating: Optional[float] = Query(None),
-    sort_by: Optional[str] = Query("sales_desc"),
-    show_trending_only: bool = False,
-    db: Session = Depends(get_db)
-):
-    query = db.query(models.Product)
-
-    if category and category.lower() != "all categories":
-        query = query.filter(models.Product.category.ilike(f"%{category}%"))
-    if min_price is not None:
-        query = query.filter(models.Product.price >= min_price)
-    if max_price is not None:
-        query = query.filter(models.Product.price <= max_price)
-    if min_rating is not None and min_rating > 0:
-        query = query.filter(models.Product.rating >= min_rating)
-    if show_trending_only:
-        query = query.filter(models.Product.reviews > 1000)
-
-    if sort_by == "price_asc":
-        query = query.order_by(models.Product.price.asc())
-    elif sort_by == "price_desc":
-        query = query.order_by(models.Product.price.desc())
-    elif sort_by == "rating_desc":
-        query = query.order_by(models.Product.rating.desc())
-
-    products = query.limit(100).all()
-    return products
-
-
-# 3️⃣ Filter Reviews
-@app.get("/reviews/filter", response_model=List[schemas.AmazonReview])
-def filter_reviews(
-    product_id: Optional[str] = Query(None),
-    sentiment: Optional[str] = Query(None),
-    min_rating: Optional[int] = Query(None),
-    date_range: Optional[str] = Query("30d"),
-    db: Session = Depends(get_db)
-):
-    query = db.query(models.AmazonReview)
-
-    if product_id:
-        query = query.filter(models.AmazonReview.product_id == product_id)
-    if sentiment:
-        query = query.filter(models.AmazonReview.Sentiment_pc == sentiment)
-    if min_rating:
-        query = query.filter(models.AmazonReview.star_rating >= min_rating)
-
-    reviews = query.limit(100).all()
-    return reviews
-
-@app.get("/Amazon_Reviews/filters")
-def get_available_filters(db: Session = Depends(get_db)):
-    # ----- Categories from Product table -----
-    product_categories = db.query(models.Product.category).distinct().all()
-    categories = sorted([c[0] for c in product_categories if c[0]])
-
-    # ----- Ratings from AmazonReview table -----
-    # Assuming your columns are: rating_1, rating_2, rating_3, rating_4, rating_5
-    ratings_columns = [
-        models.AmazonReview.rating_1,
-        models.AmazonReview.rating_2,
-        models.AmazonReview.rating_3,
-        models.AmazonReview.rating_4,
-        models.AmazonReview.rating_5
-    ]
-
-    ratings_available = []
-    for i, col in enumerate(ratings_columns, start=1):
-        count = db.query(func.sum(col)).scalar()  # sum of this rating column across all reviews
-        if count and count > 0:
-            ratings_available.append(i)
-
-    return {
-        "categories": categories,
-        "ratings": ratings_available
-    }
-
-@app.get("/top_forecast")
-def top_forecasted_products(n: int = Query(10, description="Number of top products"), db: Session = Depends(get_db)):
-    """
-    Fetch top N products by forecasted next price
-    """
-    forecast_list = crud.get_top_forecasted_products(db, n)
-    return {"table": "products_forecast", "count": len(forecast_list), "data": forecast_list}    
- 
 # --------------------------
 # Run server
 # --------------------------
@@ -404,6 +308,10 @@ def top_forecasted_products(n: int = Query(10, description="Number of top produc
     """
     forecast_list = crud.get_top_forecasted_products(db, n)
     return {"table": "products_forecast", "count": len(forecast_list), "data": forecast_list}    
+
+
+from .routers import users
+app.include_router(users.router, prefix="/users", tags=["users"])
 
 
 if __name__ == "__main__":

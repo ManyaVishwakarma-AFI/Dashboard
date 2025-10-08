@@ -1,16 +1,16 @@
-
-// ============================================
-// FILE: src/components/dashboard/product-rankings.tsx (CORRECTED)
-// ============================================
-
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { api, TrendingProduct } from "@/lib/api";
-
+ 
+interface TrendingProduct {
+  product_title: string;
+  avg_rating: number;
+  review_count: number;
+}
+ 
 function ProductCard({ product, index }: { product: TrendingProduct; index: number }) {
   const colors = ['bg-green-500', 'bg-blue-500', 'bg-purple-500'];
   const gradients = [
@@ -18,9 +18,9 @@ function ProductCard({ product, index }: { product: TrendingProduct; index: numb
     'from-blue-50 to-blue-100',
     'from-purple-50 to-purple-100'
   ];
-
+ 
   return (
-    <div 
+    <div
       className={cn(
         "flex items-center justify-between p-3 rounded-lg bg-gradient-to-r",
         gradients[index % gradients.length]
@@ -34,7 +34,7 @@ function ProductCard({ product, index }: { product: TrendingProduct; index: numb
           {index + 1}
         </div>
         <div>
-          <p className="font-medium text-sm">{product.product_id}</p>
+          <p className="font-medium text-sm">{product.product_title.replace(/"/g, '')}</p>
           <p className="text-xs text-muted-foreground">
             {product.review_count} reviews
           </p>
@@ -44,26 +44,30 @@ function ProductCard({ product, index }: { product: TrendingProduct; index: numb
     </div>
   );
 }
-
+ 
 export default function ProductRankings() {
+  const BASE_URL = "http://122.176.108.253:9002"; // Remote server IP
   const [trending, setTrending] = useState<TrendingProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
+ 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchTrendingProducts = async () => {
       try {
-        const data = await api.getTrendingProducts(10);
-        setTrending(data);
+        const res = await fetch(`${BASE_URL}/top?table=amazon_reviews&n=10`);
+        const json = await res.json();
+        if (json && json.data) {
+          setTrending(json.data);
+        }
       } catch (error) {
-        console.error('Error fetching trending products:', error);
+        console.error("Error fetching trending products:", error);
       } finally {
         setIsLoading(false);
       }
     };
-
-    fetchData();
+ 
+    fetchTrendingProducts();
   }, []);
-
+ 
   return (
     <div className="grid grid-cols-1 gap-6 mb-8">
       <Card className="bg-card rounded-xl p-6 border hover:shadow-md transition-shadow">
@@ -71,7 +75,7 @@ export default function ProductRankings() {
           <CardTitle className="text-lg font-semibold">Top Trending Products</CardTitle>
           <Badge variant="secondary" className="text-xs">By Reviews</Badge>
         </CardHeader>
-        
+ 
         <CardContent className="p-0">
           <div className="space-y-4">
             {isLoading ? (
@@ -87,8 +91,8 @@ export default function ProductRankings() {
                 </div>
               ))
             ) : trending.length > 0 ? (
-              trending.slice(0, 10).map((product, index) => (
-                <ProductCard key={product.product_id} product={product} index={index} />
+              trending.map((product, index) => (
+                <ProductCard key={index} product={product} index={index} />
               ))
             ) : (
               <div className="text-center py-8 text-muted-foreground">
@@ -101,3 +105,5 @@ export default function ProductRankings() {
     </div>
   );
 }
+ 
+ 
