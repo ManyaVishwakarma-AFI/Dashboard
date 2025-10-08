@@ -155,6 +155,10 @@
 //   );
 // }
 
+// ============================================
+// FILE: src/components/dashboard/charts-grid.tsx
+// ============================================
+
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -165,10 +169,26 @@ import {
   LinearScale,
   BarElement,
   ArcElement,
+  PointElement,
+  LineElement,
   Title,
   Tooltip,
   Legend,
 } from "chart.js";
+import { Bar, Line, Doughnut } from "react-chartjs-2";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
 import { Bar, Doughnut } from "react-chartjs-2";
  
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
@@ -178,6 +198,7 @@ interface ChartCardProps {
   children: React.ReactNode;
   isLoading?: boolean;
 }
+
  
 function ChartCard({ title, children, isLoading }: ChartCardProps) {
   return (
@@ -206,6 +227,30 @@ export default function ChartsGrid() {
   const [ratings, setRatings] = useState<any[]>([]);
   const [sentiments, setSentiments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch all data from FastAPI endpoints
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [
+          topProductsRes,
+          topReviewsRes,
+          categoriesRes,
+          ratingsRes,
+          sentimentsRes,
+        ] = await Promise.all([
+          fetch("http://localhost:8000/products/top?n=10").then((res) => res.json()),
+          fetch("http://localhost:8000/Amazon_Reviews/top?n=10").then((res) => res.json()),
+          fetch("http://localhost:8000/Amazon_Reviews/categories").then((res) => res.json()),
+          fetch("http://localhost:8000/Amazon_Reviews/ratings").then((res) => res.json()),
+          fetch("http://localhost:8000/Amazon_Reviews/sentiment").then((res) => res.json()),
+        ]);
+
+        setTopProducts(topProductsRes);
+        setTopReviews(topReviewsRes);
+        setCategories(categoriesRes);
+        setRatings(ratingsRes);
+        setSentiments(sentimentsRes);
  
   useEffect(() => {
     const fetchAll = async () => {
@@ -242,6 +287,10 @@ export default function ChartsGrid() {
         setIsLoading(false);
       }
     };
+
+    fetchData();
+  }, []);
+
  
     fetchAll();
   }, []);
@@ -251,6 +300,31 @@ export default function ChartsGrid() {
     maintainAspectRatio: false,
     plugins: { legend: { display: true, position: "bottom" as const } },
   };
+
+  // Chart Data
+  const topProductsChart = {
+    labels: topProducts.map((p) => p.title),
+    datasets: [{ label: "Rating", data: topProducts.map((p) => p.rating), backgroundColor: "hsl(142,76%,36%)" }],
+  };
+
+  const topReviewsChart = {
+    labels: topReviews.map((r) => r.product_title),
+    datasets: [{ label: "Star Rating", data: topReviews.map((r) => r.star_rating), backgroundColor: "hsl(221,83%,53%)" }],
+  };
+
+  const categoriesChart = {
+    labels: categories.map((c) => c.category),
+    datasets: [{ label: "Number of Products", data: categories.map((c) => c.count), backgroundColor: "hsl(280,80%,55%)" }],
+  };
+
+  const ratingsChart = {
+    labels: ratings.map((r) => r.rating),
+    datasets: [{ label: "Count", data: ratings.map((r) => r.count), backgroundColor: "hsl(24,95%,53%)" }],
+  };
+
+  const sentimentsChart = {
+    labels: sentiments.map((s) => s.sentiment),
+    datasets: [{ label: "Count", data: sentiments.map((s) => s.count), backgroundColor: ["hsl(142,76%,36%)","hsl(24,95%,53%)","hsl(221,83%,53%)"] }],
  
   // Charts
  
@@ -302,6 +376,25 @@ export default function ChartsGrid() {
  
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <ChartCard title="Top Products by Rating" isLoading={isLoading}>
+        <Bar data={topProductsChart} options={commonOptions} />
+      </ChartCard>
+
+      <ChartCard title="Top Reviews (Star Rating)" isLoading={isLoading}>
+        <Bar data={topReviewsChart} options={commonOptions} />
+      </ChartCard>
+
+      <ChartCard title="Products by Category" isLoading={isLoading}>
+        <Bar data={categoriesChart} options={commonOptions} />
+      </ChartCard>
+
+      <ChartCard title="Rating Distribution" isLoading={isLoading}>
+        <Bar data={ratingsChart} options={commonOptions} />
+      </ChartCard>
+
+      <ChartCard title="Sentiment Distribution" isLoading={isLoading}>
+        <Doughnut data={sentimentsChart} options={commonOptions} />
+      </ChartCard>
       <ChartCard title="Top Products by Rating" isLoading={isLoading}><Bar data={topProductsChart} options={commonOptions} /></ChartCard>
       <ChartCard title="Top Reviews (Average Rating)" isLoading={isLoading}><Bar data={topReviewsChart} options={commonOptions} /></ChartCard>
       <ChartCard title="Top Trending Products" isLoading={isLoading}><Bar data={trendingChart} options={commonOptions} /></ChartCard>
