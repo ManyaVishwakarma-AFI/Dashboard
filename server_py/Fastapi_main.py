@@ -313,6 +313,7 @@ def top_forecasted_products(n: int = Query(10, description="Number of top produc
 #         answer = f"Error: {str(e)}"
 
 #     return {"answer": answer}
+
 @app.post("/ai/query")
 def ask_ai(query: AIQuery, db: Session = Depends(get_db)):
     limit = query.limit or 50  # default 50 if not provided
@@ -404,6 +405,14 @@ def get_top_items(
         return {"table": "amazon_reviews", "count": len(data), "data": data}
     else:
         return {"error": "Invalid table. Use 'products' or 'amazon_reviews'."}
+
+@app.get("/top_forecast")
+def top_forecasted_products(n: int = Query(10, description="Number of top products"), db: Session = Depends(get_db)):
+    """
+    Fetch top N products by forecasted next price
+    """
+    forecast_list = crud.get_top_forecasted_products(db, n)
+    return {"table": "products_forecast", "count": len(forecast_list), "data": forecast_list}    
 
 
 if __name__ == "__main__":
