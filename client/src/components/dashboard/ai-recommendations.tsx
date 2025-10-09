@@ -12,7 +12,11 @@ interface RecommendationCardProps {
   gradient: string;
 }
 
-function RecommendationCard({ icon, title, description, gradient }: RecommendationCardProps) {
+interface OllamaRecommendationResponse {
+  answer: string; // AI output text
+}
+
+function RecommendationCard({ icon, title, description, action, gradient }: RecommendationCardProps) {
   return (
     <div className={`bg-gradient-to-br ${gradient} rounded-lg p-4 text-white`}>
       <div className="flex items-center mb-2">
@@ -116,38 +120,40 @@ export default function AIRecommendations({}: AIRecommendationsProps) {
       </CardHeader>
 
       <CardContent className="p-0">
-        {/* Summary */}
-        <div className="mb-6 p-4 bg-white/70 dark:bg-black/20 rounded-lg">
-          <h3 className="font-semibold mb-2 flex items-center">
-            <Lightbulb className="h-4 w-4 mr-2 text-yellow-600" />
-            Business Health Summary
-          </h3>
-          {loading ? (
-            <Skeleton className="h-4 w-full" />
-          ) : (
-            <p className="text-sm text-muted-foreground">{summary}</p>
-          )}
-        </div>
-
-        {/* Recommendations */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {loading
-            ? Array.from({ length: 2 }).map((_, index) => (
+        {/* Recommendations Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {isLoading
+            ? Array.from({ length: 3 }).map((_, index) => (
                 <div key={index} className="bg-white/70 rounded-lg p-4">
-                  <Skeleton className="h-5 w-5 mb-2" />
-                  <Skeleton className="h-4 w-24 mb-2" />
-                  <Skeleton className="h-3 w-full" />
+                  <div className="flex items-center mb-2">
+                    <Skeleton className="h-5 w-5 mr-2" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-3 w-20" />
                 </div>
               ))
-            : recommendations.map((rec, index) => (
+            : recsArray.slice(0, 3).map((rec, index) => (
                 <RecommendationCard
                   key={index}
-                  icon={cardStyles[index]?.icon || <Target className="h-5 w-5" />}
-                  title={cardStyles[index]?.title || `Recommendation ${index + 1}`}
+                  icon={defaultCards[index].icon}
+                  title={defaultCards[index].title}
                   description={rec}
-                  gradient={cardStyles[index]?.gradient || "from-gray-400 to-gray-500"}
+                  gradient={defaultCards[index].gradient}
                 />
-              ))}
+              ))
+          }
+        </div>
+
+        {/* Call to Action */}
+        <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t border-white/20">
+          <Button variant="outline" size="sm" className="flex-1">
+            <ExternalLink className="h-4 w-4 mr-2" />
+            View Detailed Report
+          </Button>
+          <Button variant="outline" size="sm" className="flex-1">
+            Schedule Consultation
+          </Button>
         </div>
       </CardContent>
     </Card>

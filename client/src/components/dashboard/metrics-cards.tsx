@@ -269,6 +269,7 @@ import { cn } from "@/lib/utils";
 //   );
 // }
 
+// 
 
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
@@ -276,7 +277,20 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TrendingUp, ShoppingCart, Star, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
- 
+
+interface FilterState {
+  category: string;
+  priceRange: [number, number];
+  rating: number;
+  dateRange: string;
+  showTrendingOnly: boolean;
+  sortBy: string;
+}
+
+interface MetricsCardsProps {
+  filters?: FilterState | null;
+}
+
 interface MetricCardProps {
   title: string;
   value: string;
@@ -285,7 +299,6 @@ interface MetricCardProps {
   isLoading?: boolean;
 }
 
- 
 function MetricCard({ title, value, icon, color, isLoading }: MetricCardProps) {
   if (isLoading) {
     return (
@@ -337,6 +350,7 @@ export default function MetricsCards() {
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       try {
         // Fetch summary statistics
         const statsRes = await fetch(`${BASE_URL}/analytics/summary`);
@@ -376,21 +390,14 @@ export default function MetricsCards() {
     };
 
     fetchData();
-  }, []);
+  }, [filters]); // Re-fetch when filters change
 
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
- 
-    fetchData();
-  }, []);
- 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
     if (num >= 1000) return (num / 1000).toFixed(1) + "K";
     return num.toString();
   };
- 
+
   const cards = [
     {
       title: "Total Reviews",
@@ -422,13 +429,17 @@ export default function MetricsCards() {
     },
     {
       title: "Average Rating",
-      value: statistics?.avg_rating ? statistics.avg_rating.toFixed(2) : "0.0",
+      value: statistics?.avg_rating
+        ? statistics.avg_rating.toFixed(2)
+        : "0.0",
       icon: <Star className="text-yellow-600 h-6 w-6" />,
       color: "bg-yellow-100",
     },
     {
       title: "Products",
-      value: statistics?.total_products ? statistics.total_products.toString() : "0",
+      value: statistics?.total_products
+        ? statistics.total_products.toString()
+        : "0",
       icon: <ShoppingCart className="text-green-600 h-6 w-6" />,
       color: "bg-green-100",
     },
@@ -439,7 +450,7 @@ export default function MetricsCards() {
       color: "bg-purple-100",
     },
   ];
- 
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       {cards.map((card, index) => (
@@ -455,6 +466,3 @@ export default function MetricsCards() {
     </div>
   );
 }
-}
- 
- 
