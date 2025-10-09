@@ -118,12 +118,23 @@
 // ============================================
 import { useEffect, useState } from "react";
 import Sidebar from "@/components/layout/sidebar";
+import FiltersPanel from "@/components/dashboard/filters-panel";
 import MetricsCards from "@/components/dashboard/metrics-cards";
 import ChartsGrid from "@/components/dashboard/charts-grid";
 import ProductRankings from "@/components/dashboard/product-rankings";
 import FiltersPanel from "@/components/dashboard/filters-panel"; // ADD THIS
 import { Button } from "@/components/ui/button";
-import { Bell } from "lucide-react";
+import { Bell, Filter } from "lucide-react";
+import AIRecommendations from "@/components/dashboard/ai-recommendations";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Dashboard() {
 import { Bell, X, Filter } from "lucide-react";
@@ -153,10 +164,13 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex">
+      {/* Sidebar */}
       <Sidebar />
-      
-      <div className="ml-64 min-h-screen">
+
+      {/* Main Content */}
+      <div className="flex-1 ml-64 min-h-screen flex flex-col">
+        {/* Header */}
         <header className="bg-card border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-20">
           <div className="flex items-center space-x-4">
             <div>
@@ -169,10 +183,73 @@ export default function Dashboard() {
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm">
-              <Bell className="h-4 w-4" />
+
+          <div className="flex items-center space-x-2">
+            {/* Filter Toggle */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters((prev) => !prev)}
+            >
+              <Filter className="h-4 w-4 mr-1" />
+              Filters
             </Button>
+
+            {/* Select Table for Notifications */}
+            <select
+              className="border border-gray-300 rounded px-2 py-1 text-sm bg-transparent"
+              value={selectedSource}
+              onChange={(e) => {
+                setSelectedSource(e.target.value);
+                fetchNotifications(e.target.value);
+              }}
+            >
+              <option value="products">Products</option>
+              <option value="amazon_reviews">Amazon Reviews</option>
+            </select>
+
+            {/* Notifications Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="relative">
+                  <Bell className="h-4 w-4" />
+                  {notifications.length > 0 && (
+                    <span className="absolute top-1 right-1 inline-flex h-2 w-2 rounded-full bg-red-500"></span>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end" className="w-80 rounded-lg shadow-lg">
+                <DropdownMenuLabel className="font-semibold">
+                  Notifications ({selectedSource})
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+
+                {notifications.length === 0 ? (
+                  <DropdownMenuItem className="text-sm text-muted-foreground">
+                    No new notifications
+                  </DropdownMenuItem>
+                ) : (
+                  notifications.map((n) => (
+                    <DropdownMenuItem
+                      key={n.id}
+                      className="flex flex-col items-start py-2 border-b last:border-none border-border"
+                    >
+                      <p className="text-sm truncate w-full">{n.message}</p>
+                      <span className="text-xs text-muted-foreground">{n.time}</span>
+                    </DropdownMenuItem>
+                  ))
+                )}
+
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => setNotifications([])}
+                  className="text-sm text-blue-600 cursor-pointer"
+                >
+                  Clear all
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 
@@ -234,9 +311,13 @@ export default function Dashboard() {
           {/* Dashboard Components */}
           <MetricsCards />
           <ChartsGrid />
+          <AIRecommendations />
           <ProductRankings />
-        </div>
+        </main>
       </div>
+
+      {/* Floating Chatbot */}
+      <Chatbot />
     </div>
   );
 }

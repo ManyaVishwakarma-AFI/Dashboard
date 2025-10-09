@@ -121,7 +121,7 @@ export default function Login() {
               Sign in to access your analytics dashboard
             </CardDescription>
           </CardHeader>
-          
+         
           <CardContent className="space-y-6">
             {/* Demo Login Button */}
             <Button 
@@ -143,7 +143,7 @@ export default function Login() {
                 </span>
               </div>
             </div>
-
+ 
             {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
@@ -157,7 +157,7 @@ export default function Login() {
                   required
                 />
               </div>
-              
+             
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
@@ -169,7 +169,7 @@ export default function Login() {
                   required
                 />
               </div>
-
+ 
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center space-x-2">
                   <Checkbox 
