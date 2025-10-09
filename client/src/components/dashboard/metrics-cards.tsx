@@ -1,3 +1,21 @@
+// ============================================
+// FILE: src/components/dashboard/metrics-cards.tsx (CORRECTED)
+// ============================================
+
+import { useEffect, useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  ShoppingCart, 
+  Star,
+  MessageSquare
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { api } from "@/lib/api";
+
 // // ============================================
 // // FILE 2: src/components/dashboard/metrics-cards.tsx (COMPLETE)
 // // ============================================
@@ -145,6 +163,7 @@ interface MetricCardProps {
   color: string;
   isLoading?: boolean;
 }
+
  
 function MetricCard({ title, value, icon, color, isLoading }: MetricCardProps) {
   if (isLoading) {
@@ -160,6 +179,20 @@ function MetricCard({ title, value, icon, color, isLoading }: MetricCardProps) {
       </Card>
     );
   }
+
+  return (
+    <Card className="metric-card bg-card rounded-xl p-6 border shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex items-center justify-between mb-4">
+        <div className={cn("p-3 rounded-lg", color)}>
+          {icon}
+        </div>
+        <Badge variant="secondary" className="ai-badge text-xs">Live</Badge>
+      </div>
+      
+      <h3 className="text-2xl font-bold text-foreground mb-1">
+        {value}
+      </h3>
+      
  
   return (
     <Card className="metric-card bg-card rounded-xl p-6 border shadow-sm hover:shadow-md transition-shadow">
@@ -174,6 +207,23 @@ function MetricCard({ title, value, icon, color, isLoading }: MetricCardProps) {
     </Card>
   );
 }
+
+export default function MetricsCards() {
+  const [statistics, setStatistics] = useState<any>(null);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [stats, cats] = await Promise.all([
+          api.getStatistics(),
+          api.getCategoryStatistics()
+        ]);
+        setStatistics(stats);
+        setCategories(cats);
+      } catch (error) {
+        console.error('Error fetching metrics:', error);
  
 export default function MetricsCards() {
   const BASE_URL = "http://122.176.108.253:9002"; // your remote server IP
@@ -199,6 +249,13 @@ export default function MetricsCards() {
         setIsLoading(false);
       }
     };
+
+    fetchData();
+  }, []);
+
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
  
     fetchData();
   }, []);
@@ -212,6 +269,28 @@ export default function MetricsCards() {
   const cards = [
     {
       title: "Total Reviews",
+      value: statistics ? formatNumber(statistics.total_reviews) : "0",
+      icon: <MessageSquare className="text-blue-600 h-6 w-6" />,
+      color: "bg-blue-100"
+    },
+    {
+      title: "Average Rating",
+      value: statistics?.average_rating ? statistics.average_rating.toFixed(1) : "0.0",
+      icon: <Star className="text-yellow-600 h-6 w-6" />,
+      color: "bg-yellow-100"
+    },
+    {
+      title: "Products",
+      value: categories.length.toString(),
+      icon: <ShoppingCart className="text-green-600 h-6 w-6" />,
+      color: "bg-green-100"
+    },
+    {
+      title: "Categories",
+      value: categories.length.toString(),
+      icon: <TrendingUp className="text-purple-600 h-6 w-6" />,
+      color: "bg-purple-100"
+    }
       value: statistics?.total_reviews ? formatNumber(statistics.total_reviews) : "0",
       icon: <MessageSquare className="text-blue-600 h-6 w-6" />,
       color: "bg-blue-100",
@@ -250,6 +329,7 @@ export default function MetricsCards() {
       ))}
     </div>
   );
+}
 }
  
  
