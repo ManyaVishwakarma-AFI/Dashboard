@@ -1,15 +1,40 @@
 // // ============================================
-// // FILE: src/pages/dashboard.tsx (CORRECTED)
+// // FILE 1: src/pages/dashboard.tsx (COMPLETE REPLACEMENT)
 // // ============================================
-
+// import { useEffect, useState } from "react";
 // import Sidebar from "@/components/layout/sidebar";
 // import MetricsCards from "@/components/dashboard/metrics-cards";
+// import FiltersPanel from "@/components/dashboard/filters-panel";
 // import ChartsGrid from "@/components/dashboard/charts-grid";
 // import ProductRankings from "@/components/dashboard/product-rankings";
 // import { Button } from "@/components/ui/button";
-// import { Bell } from "lucide-react";
+// import { Bell, X, Filter } from "lucide-react";
+// import { Card, CardContent } from "@/components/ui/card";
 
 // export default function Dashboard() {
+//   const [user, setUser] = useState<any>(null);
+//   const [showWelcome, setShowWelcome] = useState(false);
+//   const [showFilters, setShowFilters] = useState(false);
+
+//   useEffect(() => {
+//     const storedUser = localStorage.getItem('user');
+//     if (storedUser) {
+//       const userData = JSON.parse(storedUser);
+//       setUser(userData);
+      
+//       // Show welcome message for new users
+//       const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+//       if (!hasSeenWelcome && userData.businessInterests?.length > 0) {
+//         setShowWelcome(true);
+//       }
+//     }
+//   }, []);
+
+//   const handleDismissWelcome = () => {
+//     setShowWelcome(false);
+//     localStorage.setItem('hasSeenWelcome', 'true');
+//   };
+
 //   return (
 //     <div className="min-h-screen bg-background">
 //       <Sidebar />
@@ -18,81 +43,24 @@
 //         <header className="bg-card border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-20">
 //           <div className="flex items-center space-x-4">
 //             <div>
-//               <h2 className="text-xl font-semibold">Amazon Reviews Dashboard</h2>
+//               <h2 className="text-xl font-semibold">
+//                Sellers Dashboard
+//               </h2>
 //               <p className="text-sm text-muted-foreground">
 //                 Real-time analytics from your review database
 //               </p>
 //             </div>
 //           </div>
 //           <div className="flex items-center space-x-4">
-//             <Button variant="ghost" size="sm">
-//               <Bell className="h-4 w-4" />
-//             </Button>
-//           </div>
-//         </header>
-
-//         <div className="p-6 space-y-6">
-//           <MetricsCards />
-//           <ChartsGrid />
-//           <ProductRankings />
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-// ============================================
-// FILE: src/pages/dashboard.tsx (FIXED)
-// ============================================
-
-// ============================================
-// FILE: src/pages/dashboard.tsx (FILTER TOGGLE)
-// ============================================
-
-// import { useState } from "react";
-// import Sidebar from "@/components/layout/sidebar";
-// import FiltersPanel from "@/components/dashboard/filters-panel";
-// import MetricsCards from "@/components/dashboard/metrics-cards";
-// import ChartsGrid from "@/components/dashboard/charts-grid";
-// import ProductRankings from "@/components/dashboard/product-rankings";
-// import { Button } from "@/components/ui/button";
-// import { Bell, Filter } from "lucide-react";
-
-// export default function Dashboard() {
-//   const [showFilters, setShowFilters] = useState(false);
-
-//   return (
-//     <div className="min-h-screen bg-background flex">
-//       {/* Sidebar */}
-//       <Sidebar />
-
-//       {/* Main content */}
-//       <div className="flex-1 ml-64 min-h-screen flex flex-col">
-//         {/* Header */}
-//         <header className="bg-card border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-20">
-//           <div className="flex items-center space-x-4">
-//             <div>
-//               <h2 className="text-xl font-semibold">Amazon Reviews Dashboard</h2>
-//               <p className="text-sm text-muted-foreground">
-//                 Real-time analytics from your review database
-//               </p>
-//             </div>
-//           </div>
-
-//           <div className="flex items-center space-x-2">
-//             {/* Filter toggle button */}
-//             <Button 
-//               variant="outline" 
-//               size="sm" 
+//             <Button variant="ghost" size="sm"
 //               onClick={() => setShowFilters(prev => !prev)}
-//             >
+//           >
 //               <Filter className="h-4 w-4 mr-1" />
 //               Filters
 //             </Button>
 
-//             {/* Notifications */}
 //             <Button variant="ghost" size="sm">
-//               <Bell className="h-4 w-4" />
+//                <Bell className="h-4 w-4" />
 //             </Button>
 //           </div>
 //         </header>
@@ -104,271 +72,57 @@
 //           </div>
 //         )}
 
-//         {/* Main content */}
-//         <main className="p-6 space-y-6 flex-1 overflow-y-auto">
-//           <MetricsCards />
-//           <ChartsGrid />
-//           <ProductRankings />
-//         </main>
-//       </div>
-//     </div>
-//   );
-// }
-
-
-// import { useState, useEffect } from "react";
-// import Sidebar from "@/components/layout/sidebar";
-// import FiltersPanel from "@/components/dashboard/filters-panel";
-// import MetricsCards from "@/components/dashboard/metrics-cards";
-// import ChartsGrid from "@/components/dashboard/charts-grid";
-// import ProductRankings from "@/components/dashboard/product-rankings";
-// import { Button } from "@/components/ui/button";
-// import { Bell, Filter } from "lucide-react";
-
-// import {
-//   DropdownMenu,
-//   DropdownMenuContent,
-//   DropdownMenuItem,
-//   DropdownMenuLabel,
-//   DropdownMenuSeparator,
-//   DropdownMenuTrigger,
-// } from "@/components/ui/dropdown-menu";
-
-// export default function Dashboard() {
-//   const [showFilters, setShowFilters] = useState(false);
-//   const [notifications, setNotifications] = useState<
-//     { id: number; message: string; time: string }[]
-//   >([]);
-
-//   // Simulate fetching notifications (replace with FastAPI endpoint later)
-//   useEffect(() => {
-//     const fakeData = [
-//       { id: 1, message: "New review added for iPhone 15", time: "2 mins ago" },
-//       { id: 2, message: "Low rating detected on Samsung Galaxy S23", time: "10 mins ago" },
-//       { id: 3, message: "Price alert triggered for OnePlus 12", time: "1 hour ago" },
-//     ];
-//     setNotifications(fakeData);
-//   }, []);
-
-//   return (
-//     <div className="min-h-screen bg-background flex">
-//       {/* Sidebar */}
-//       <Sidebar />
-
-//       {/* Main Content */}
-//       <div className="flex-1 ml-64 min-h-screen flex flex-col">
-//         {/* Header */}
-//         <header className="bg-card border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-20">
-//           <div className="flex items-center space-x-4">
-//             <div>
-//               <h2 className="text-xl font-semibold">Amazon Reviews Dashboard</h2>
-//               <p className="text-sm text-muted-foreground">
-//                 Real-time analytics from your review database
-//               </p>
-//             </div>
-//           </div>
-
-//           <div className="flex items-center space-x-2">
-//             {/* Filter Toggle */}
-//             <Button
-//               variant="outline"
-//               size="sm"
-//               onClick={() => setShowFilters((prev) => !prev)}
-//             >
-//               <Filter className="h-4 w-4 mr-1" />
-//               Filters
-//             </Button>
-
-//             {/* Notifications Dropdown */}
-//             <DropdownMenu>
-//               <DropdownMenuTrigger asChild>
-//                 <Button variant="ghost" size="sm" className="relative">
-//                   <Bell className="h-4 w-4" />
-//                   {notifications.length > 0 && (
-//                     <span className="absolute top-1 right-1 inline-flex h-2 w-2 rounded-full bg-red-500"></span>
-//                   )}
-//                 </Button>
-//               </DropdownMenuTrigger>
-
-//               <DropdownMenuContent align="end" className="w-80">
-//                 <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-//                 <DropdownMenuSeparator />
-
-//                 {notifications.length === 0 ? (
-//                   <DropdownMenuItem className="text-sm text-muted-foreground">
-//                     No new notifications
-//                   </DropdownMenuItem>
-//                 ) : (
-//                   notifications.map((n) => (
-//                     <DropdownMenuItem key={n.id} className="flex flex-col items-start">
-//                       <p className="text-sm">{n.message}</p>
-//                       <span className="text-xs text-muted-foreground">{n.time}</span>
-//                     </DropdownMenuItem>
-//                   ))
-//                 )}
-
-//                 <DropdownMenuSeparator />
-//                 <DropdownMenuItem
-//                   onClick={() => setNotifications([])}
-//                   className="text-sm text-blue-600 cursor-pointer"
+//         <div className="p-6 space-y-6">
+//           {/* Welcome Message */}
+//           {showWelcome && user?.businessInterests && (
+//             <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border-blue-200">
+//               <CardContent className="pt-6 relative">
+//                 <Button
+//                   variant="ghost"
+//                   size="sm"
+//                   className="absolute top-2 right-2"
+//                   onClick={handleDismissWelcome}
 //                 >
-//                   Clear all
-//                 </DropdownMenuItem>
-//               </DropdownMenuContent>
-//             </DropdownMenu>
-//           </div>
-//         </header>
-
-//         {/* Collapsible Filters Panel */}
-//         {showFilters && (
-//           <div className="px-6 py-4 border-b border-border bg-card transition-all duration-300">
-//             <FiltersPanel />
-//           </div>
-//         )}
-
-//         {/* Dashboard Main Section */}
-//         <main className="p-6 space-y-6 flex-1 overflow-y-auto">
-//           <MetricsCards />
-//           <ChartsGrid />
-//           <ProductRankings />
-//         </main>
-//       </div>
-//     </div>
-//   );
-// }
-
-// import { useState, useEffect } from "react";
-// import Sidebar from "@/components/layout/sidebar";
-// import FiltersPanel from "@/components/dashboard/filters-panel";
-// import MetricsCards from "@/components/dashboard/metrics-cards";
-// import ChartsGrid from "@/components/dashboard/charts-grid";
-// import ProductRankings from "@/components/dashboard/product-rankings";
-// import Chatbot from "@/components/chatbot/chatbot"; // <-- Import Chatbot
-// import { Button } from "@/components/ui/button";
-// import { Bell, Filter } from "lucide-react";
-
-// import {
-//   DropdownMenu,
-//   DropdownMenuContent,
-//   DropdownMenuItem,
-//   DropdownMenuLabel,
-//   DropdownMenuSeparator,
-//   DropdownMenuTrigger,
-// } from "@/components/ui/dropdown-menu";
-
-// export default function Dashboard() {
-//   const [showFilters, setShowFilters] = useState(false);
-//   const [notifications, setNotifications] = useState<
-//     { id: number; message: string; time: string }[]
-//   >([]);
-
-//   useEffect(() => {
-//     const fakeData = [
-//       { id: 1, message: "New review added for iPhone 15", time: "2 mins ago" },
-//       { id: 2, message: "Low rating detected on Samsung Galaxy S23", time: "10 mins ago" },
-//       { id: 3, message: "Price alert triggered for OnePlus 12", time: "1 hour ago" },
-//     ];
-//     setNotifications(fakeData);
-//   }, []);
-
-//   return (
-//     <div className="min-h-screen bg-background flex">
-//       {/* Sidebar */}
-//       <Sidebar />
-
-//       {/* Main Content */}
-//       <div className="flex-1 ml-64 min-h-screen flex flex-col">
-//         {/* Header */}
-//         <header className="bg-card border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-20">
-//           <div className="flex items-center space-x-4">
-//             <div>
-//               <h2 className="text-xl font-semibold">Amazon Reviews Dashboard</h2>
-//               <p className="text-sm text-muted-foreground">
-//                 Real-time analytics from your review database
-//               </p>
-//             </div>
-//           </div>
-
-//           <div className="flex items-center space-x-2">
-//             {/* Filter Toggle */}
-//             <Button
-//               variant="outline"
-//               size="sm"
-//               onClick={() => setShowFilters((prev) => !prev)}
-//             >
-//               <Filter className="h-4 w-4 mr-1" />
-//               Filters
-//             </Button>
-
-//             {/* Notifications Dropdown */}
-//             <DropdownMenu>
-//               <DropdownMenuTrigger asChild>
-//                 <Button variant="ghost" size="sm" className="relative">
-//                   <Bell className="h-4 w-4" />
-//                   {notifications.length > 0 && (
-//                     <span className="absolute top-1 right-1 inline-flex h-2 w-2 rounded-full bg-red-500"></span>
-//                   )}
+//                   <X className="h-4 w-4" />
 //                 </Button>
-//               </DropdownMenuTrigger>
+//                 <h3 className="font-semibold text-lg mb-2">
+//                   Welcome, {user.name}! 👋
+//                 </h3>
+//                 <p className="text-sm text-muted-foreground mb-3">
+//                   Your dashboard is customized for: {' '}
+//                   <span className="font-medium text-foreground">
+//                     {user.businessInterests.map((interest: string) => 
+//                       interest.charAt(0).toUpperCase() + interest.slice(1)
+//                     ).join(', ')}
+//                   </span>
+//                 </p>
+//                 <p className="text-sm text-muted-foreground">
+//                   Start exploring insights from Amazon reviews to make data-driven decisions.
+//                 </p>
+//               </CardContent>
+//             </Card>
+//           )}
 
-//               <DropdownMenuContent align="end" className="w-80">
-//                 <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-//                 <DropdownMenuSeparator />
-
-//                 {notifications.length === 0 ? (
-//                   <DropdownMenuItem className="text-sm text-muted-foreground">
-//                     No new notifications
-//                   </DropdownMenuItem>
-//                 ) : (
-//                   notifications.map((n) => (
-//                     <DropdownMenuItem key={n.id} className="flex flex-col items-start">
-//                       <p className="text-sm">{n.message}</p>
-//                       <span className="text-xs text-muted-foreground">{n.time}</span>
-//                     </DropdownMenuItem>
-//                   ))
-//                 )}
-
-//                 <DropdownMenuSeparator />
-//                 <DropdownMenuItem
-//                   onClick={() => setNotifications([])}
-//                   className="text-sm text-blue-600 cursor-pointer"
-//                 >
-//                   Clear all
-//                 </DropdownMenuItem>
-//               </DropdownMenuContent>
-//             </DropdownMenu>
-//           </div>
-//         </header>
-
-//         {/* Collapsible Filters Panel */}
-//         {showFilters && (
-//           <div className="px-6 py-4 border-b border-border bg-card transition-all duration-300">
-//             <FiltersPanel />
-//           </div>
-//         )}
-
-//         {/* Dashboard Main Section */}
-//         <main className="p-6 space-y-6 flex-1 overflow-y-auto">
+//           {/* Dashboard Components */}
 //           <MetricsCards />
 //           <ChartsGrid />
 //           <ProductRankings />
-//         </main>
+//         </div>
 //       </div>
-
-//       {/* Floating Chatbot */}
-//       <Chatbot /> {/* <-- Your AI Chatbot appears on all pages */}
 //     </div>
 //   );
 // }
 
-
-import { useState, useEffect } from "react";
+// ============================================
+// FILE 2: src/pages/dashboard.tsx (ADD FILTER PANEL)
+// ============================================
+import { useEffect, useState } from "react";
 import Sidebar from "@/components/layout/sidebar";
 import FiltersPanel from "@/components/dashboard/filters-panel";
 import MetricsCards from "@/components/dashboard/metrics-cards";
 import ChartsGrid from "@/components/dashboard/charts-grid";
 import ProductRankings from "@/components/dashboard/product-rankings";
-import Chatbot from "@/components/chatbot/chatbot";
+import FiltersPanel from "@/components/dashboard/filters-panel"; // ADD THIS
 import { Button } from "@/components/ui/button";
 import { Bell, Filter } from "lucide-react";
 import AIRecommendations from "@/components/dashboard/ai-recommendations";
@@ -383,36 +137,31 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function Dashboard() {
-  const [showFilters, setShowFilters] = useState(false);
-  const [notifications, setNotifications] = useState<
-    { id: number; message: string; time: string }[]
-  >([]);
-  const [selectedSource, setSelectedSource] = useState("products");
+import { Bell, X, Filter } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
-  const BASE_URL = "http://127.0.0.1:9001"; // 🔹 Change to your remote FastAPI URL in production
-
-  // Fetch notifications from FastAPI
-  const fetchNotifications = async (source = selectedSource) => {
-    try {
-      const res = await fetch(`${BASE_URL}/notifications?table=${source}`);
-      const data = await res.json();
-      if (data?.data) {
-        setNotifications(data.data);
-      } else {
-        setNotifications([]);
-      }
-    } catch (error) {
-      console.error("Error fetching notifications:", error);
-    }
-  };
+export default function Dashboard() {
+  const [user, setUser] = useState<any>(null);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [showFilters, setShowFilters] = useState(false); // ADD THIS
 
   useEffect(() => {
-    fetchNotifications();
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const userData = JSON.parse(storedUser);
+      setUser(userData);
+      
+      const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+      if (!hasSeenWelcome && userData.businessInterests?.length > 0) {
+        setShowWelcome(true);
+      }
+    }
+  }, []);
 
-    // 🔄 Auto-refresh every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
-  }, [selectedSource]);
+  const handleDismissWelcome = () => {
+    setShowWelcome(false);
+    localStorage.setItem('hasSeenWelcome', 'true');
+  };
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -426,6 +175,9 @@ export default function Dashboard() {
           <div className="flex items-center space-x-4">
             <div>
               <h2 className="text-xl font-semibold">Amazon Reviews Dashboard</h2>
+              <h2 className="text-xl font-semibold">
+                Amazon Reviews Dashboard
+              </h2>
               <p className="text-sm text-muted-foreground">
                 Real-time analytics from your review database
               </p>
@@ -501,15 +253,62 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* Collapsible Filters Panel */}
-        {showFilters && (
-          <div className="px-6 py-4 border-b border-border bg-card transition-all duration-300">
-            <FiltersPanel />
-          </div>
-        )}
+        <div className="p-6 space-y-6">
+            <Button variant="ghost" size="sm"
+              onClick={() => setShowFilters(prev => !prev)}
+          >
+              <Filter className="h-4 w-4 mr-1" />
+              Filters
+            </Button>
 
-        {/* Dashboard Main Section */}
-        <main className="p-6 space-y-6 flex-1 overflow-y-auto">
+            <Button variant="ghost" size="sm">
+              <Bell className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+          </div>
+        </header>
+
+        <div className="p-6 space-y-6">
+          {/* Welcome Message */}
+          {showWelcome && user?.businessInterests && (
+            <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border-blue-200">
+              <CardContent className="pt-6 relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-2 right-2"
+                  onClick={handleDismissWelcome}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+                <h3 className="font-semibold text-lg mb-2">
+                  Welcome, {user.name}! 👋
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Your dashboard is customized for: {' '}
+                  <span className="font-medium text-foreground">
+                    {user.businessInterests.map((interest: string) => 
+                      interest.charAt(0).toUpperCase() + interest.slice(1)
+                    ).join(', ')}
+                  </span>
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Start exploring insights from Amazon reviews to make data-driven decisions.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Filter Panel - ADD THIS */}
+          {showFilters && <FiltersPanel />}
+
+          {/* Dashboard Components */}
           <MetricsCards />
           <ChartsGrid />
           <AIRecommendations />
@@ -522,4 +321,3 @@ export default function Dashboard() {
     </div>
   );
 }
-

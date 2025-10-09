@@ -1,26 +1,39 @@
 from fastapi import FastAPI, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from typing import List, Optional
 from sqlalchemy import text
 from typing import List, Optional
 import subprocess, json
 from pydantic import BaseModel
 import uvicorn
+from sqlalchemy import func
+from sklearn.preprocessing import MinMaxScaler
 
 from . import crud, schemas, models
 from .database_config import get_db, engine
 
+
+# --------------------------
+# DB initialization
+# --------------------------
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Amazon Reviews API", version="1.0.0")
+app = FastAPI(title="Product API", version="1.1.0")
 
+# --------------------------
+# Middleware
+# --------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # TODO: restrict in production
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# --------------------------
+# Health & Root
+# --------------------------
 """class AIQuery(BaseModel):
     question: str"""
 class AIQuery(BaseModel):
@@ -38,13 +51,16 @@ def decimal_to_float(obj):
 
 @app.get("/")
 def read_root():
-    return {"message": "Amazon Reviews API running"}
+    return {"message": "Product API running"}
 
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
 
-# ----------- Reviews -------------
+
+# --------------------------
+# Amazon Reviews Endpoints
+# --------------------------
 @app.get("/Amazon_Reviews/reviews", response_model=List[schemas.AmazonReview])
 def get_reviews(limit: int = 50, offset: int = 0, db: Session = Depends(get_db)):
     return crud.get_reviews(db, limit=limit, offset=offset)
@@ -61,7 +77,10 @@ def get_product_reviews(product_id: str, limit: int = 20, db: Session = Depends(
 def search_reviews(query: str, limit: int = 50, db: Session = Depends(get_db)):
     return crud.search_reviews(db, query, limit)
 
-# ----------- Stats -------------
+
+# --------------------------
+# Statistics Endpoints
+# --------------------------
 @app.get("/Amazon_Reviews/statistics")
 def get_statistics(db: Session = Depends(get_db)):
     return crud.get_review_statistics(db)
@@ -81,6 +100,10 @@ def get_category_stats(db: Session = Depends(get_db)):
     return crud.get_category_statistics(db)
 
 # ----------- Analytics -------------
+
+# --------------------------
+# Analytics Endpoints
+# --------------------------
 @app.get("/Amazon_Reviews/trending", response_model=List[schemas.TrendingProductOut])
 def get_trending(limit: int = 10, db: Session = Depends(get_db)):
     return crud.get_trending_products(db, limit)
@@ -99,9 +122,28 @@ def get_sentiment(product_id: str, db: Session = Depends(get_db)):
 
 # ----------- Products -------------
 @app.get("/products", response_model=List[schemas.Product])
-def read_products(limit: int = 10, offset: int = 0, category: schemas.Optional[str] = None,
-                  min_price: schemas.Optional[float] = None, max_price: schemas.Optional[float] = None,
-                  db: Session = Depends(get_db)):
+def read_products(
+    limit: int = 10,
+    offset: int = 0,
+    category: Optional[str] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    db: Session = Depends(get_db)
+):
+    return crud.get_products(db, limit, offset, category, min_price, max_price)
+
+# --------------------------
+# Products Endpoints
+# --------------------------
+@app.get("/products", response_model=List[schemas.Product])
+def read_products(
+    limit: int = 10,
+    offset: int = 0,
+    category: Optional[str] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    db: Session = Depends(get_db)
+):
     return crud.get_products(db, limit, offset, category, min_price, max_price)
 
 @app.get("/analytics/summary", response_model=schemas.Summary)
@@ -113,6 +155,9 @@ def analytics_by_category(db: Session = Depends(get_db)):
     categories = crud.get_category_analytics(db)
     return {"categories": categories}
 
+# --------------------------
+# Run server
+# --------------------------
 # @app.post("/ai/query")
 # def ask_ai(query: AIQuery):
 #     question = query.question
@@ -176,6 +221,7 @@ def analytics_by_category(db: Session = Depends(get_db)):
 #         answer = f"Error: {str(e)}"
 
 #     return {"answer": answer}
+
 @app.post("/ai/query")
 def ask_ai(query: AIQuery, db: Session = Depends(get_db)):
     limit = query.limit or 50  # default 50 if not provided
@@ -322,7 +368,18 @@ def get_notifications(
     else:
         return {"error": "Invalid table. Use 'products' or 'amazon_reviews'."}
 
-    return {"table": table, "count": len(data), "data": data}
+@app.get("/top_forecast")
+def top_forecasted_products(n: int = Query(10, description="Number of top products"), db: Session = Depends(get_db)):
+    """
+    Fetch top N products by forecasted next price
+    """
+    forecast_list = crud.get_top_forecasted_products(db, n)
+    return {"table": "products_forecast", "count": len(forecast_list), "data": forecast_list}    
+
+
+from .routers import users
+app.include_router(users.router, prefix="/users")
+
 
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

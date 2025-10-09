@@ -6,7 +6,6 @@ DATABASE_URL = "postgresql://seller-db:Seller!db@122.176.108.253:5432/db1"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
 Base = declarative_base()
 
 def get_db():
@@ -15,3 +14,4 @@ def get_db():
         yield db
     finally:
         db.close()
+        

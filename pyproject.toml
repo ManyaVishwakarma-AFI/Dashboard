@@ -1,0 +1,23 @@
+[project]
+name = "dashboard"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "SQLAlchemy",
+    "psycopg2-binary",
+    "python-dotenv",
+    "openai",
+    "passlib[bcrypt]",
+    "pydantic-settings",
+    "python-jose[cryptography]",
+    "email-validator",
+    "python-multipart",
+    "pandas",
+    "tensorflow>=2.20.0",
+    "scikit-learn",
+]

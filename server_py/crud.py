@@ -9,6 +9,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 from sklearn.preprocessing import MinMaxScaler
 
+
 def get_reviews(db: Session, limit: int = 50, offset: int = 0):
     return db.query(models.AmazonReview).offset(offset).limit(limit).all()
 
@@ -202,6 +203,14 @@ def get_category_analytics(db: Session) -> List[Dict[str, Any]]:
     result = db.execute(text(query))
     return [dict(row._mapping) for row in result]
 
+def get_filters(db: Session):
+    query = db.execute("SELECT DISTINCT category, brand FROM amazon_reviews")
+    results = query.fetchall()
+    filters = []
+    for row in results:
+        filters.append(dict(row._mapping))  
+    return filters
+
 def forecast_next_price(df: pd.DataFrame, look_back=5, epochs=50) -> float:
     """
     df: pandas dataframe with 'price' column sorted by date
@@ -209,30 +218,30 @@ def forecast_next_price(df: pd.DataFrame, look_back=5, epochs=50) -> float:
     """
     if len(df) < look_back:
         return df['price'].iloc[-1]  # fallback if not enough data
-
+ 
     scaler = MinMaxScaler()
     prices = scaler.fit_transform(df['price'].values.reshape(-1,1))
-
+ 
     X, y = [], []
     for i in range(look_back, len(prices)):
         X.append(prices[i-look_back:i,0])
         y.append(prices[i,0])
-
+ 
     X, y = np.array(X), np.array(y)
     X = X.reshape(X.shape[0], X.shape[1], 1)
-
+ 
     model = Sequential()
     model.add(LSTM(50, return_sequences=True, input_shape=(X.shape[1],1)))
     model.add(LSTM(50))
     model.add(Dense(1))
     model.compile(optimizer='adam', loss='mean_squared_error')
     model.fit(X, y, epochs=epochs, batch_size=16, verbose=0)
-
+ 
     last_sequence = X[-1]
     next_price = model.predict(last_sequence.reshape(1, look_back,1), verbose=0)
     next_price = scaler.inverse_transform(next_price.reshape(-1,1))[0,0]
     return float(next_price)
-
+ 
 def get_top_forecasted_products(db: Session, n: int = 10) -> list:
     """
     Fetch all products from DB, forecast next price per product using LSTM,
@@ -241,7 +250,7 @@ def get_top_forecasted_products(db: Session, n: int = 10) -> list:
     # Get all products and their historical prices
     query = "SELECT id, title, price, last_updated as date FROM products ORDER BY id, last_updated"
     df = pd.read_sql(query, db.bind)
-
+ 
     forecast_list = []
     for product_id, group in df.groupby('id'):
         group = group.sort_values('date')
@@ -252,9 +261,8 @@ def get_top_forecasted_products(db: Session, n: int = 10) -> list:
             "forecast_price": forecast_price,
             "currency": "₹"
         })
-
+ 
     # Sort descending and take top N
     forecast_list = sorted(forecast_list, key=lambda x: x['forecast_price'], reverse=True)[:n]
-
+ 
     return forecast_list
-
