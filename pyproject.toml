@@ -19,4 +19,5 @@ dependencies = [
     "python-multipart",
     "pandas",
     "tensorflow>=2.20.0",
+    "scikit-learn",
 ]
