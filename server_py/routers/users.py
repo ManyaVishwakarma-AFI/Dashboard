@@ -68,17 +68,28 @@ from typing import List
 
 from ..database_config import get_db
 from ..models import User
-from ..schemas import UserCreate, UserOut  # define your Pydantic schemas
+from ..schemas import UserCreate, UserOut  # make sure you have these schemas
 
-router = APIRouter()
+router = APIRouter(prefix="/users", tags=["Users"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    """
+    Truncate password to 72 bytes for bcrypt, then hash it.
+    """
+    max_bytes = 72
+    password_bytes = password.encode("utf-8")
+    if len(password_bytes) > max_bytes:
+        password_bytes = password_bytes[:max_bytes]
+    return pwd_context.hash(password_bytes)
+
 
 
 def format_business_interests(interests: List[str]) -> List[str]:
+    """
+    Clean up and normalize business interests.
+    """
     return [i.strip().lower() for i in interests if i.strip()]
 
 
@@ -86,13 +97,17 @@ def current_timestamp() -> datetime:
     return datetime.utcnow()
 
 
-@router.post("/users/signup", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+@router.post("/signup", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 def signup(user: UserCreate, db: Session = Depends(get_db)):
-    # Check for existing email
+    """
+    Create a new user with hashed password and formatted business interests.
+    """
+    # Check if email already exists
     existing_user = db.query(User).filter(User.email == user.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
+    # Create new user
     db_user = User(
         first_name=user.first_name,
         last_name=user.last_name,
