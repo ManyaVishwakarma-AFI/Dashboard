@@ -49,15 +49,19 @@ class Product(Base):
     last_updated = Column(TIMESTAMP, nullable=True)
 
 from sqlalchemy import Column, Integer, String, ARRAY, Boolean
+from datetime import datetime
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    first_name = Column(String, nullable=False)
-    last_name = Column(String, nullable=False)
-    email = Column(String, unique=True, nullable=False, index=True)
-    password_hash = Column(String, nullable=False)
-    business_name = Column(String)
-    location = Column(String, nullable=False)
-    business_interests = Column(ARRAY(String), nullable=False)
-    is_active = Column(Boolean, default=True)
+    first_name = Column(String(50))
+    last_name = Column(String(50))
+    email = Column(String(100), unique=True, index=True)
+    password_hash = Column(String)
+    business_name = Column(String(100))
+    location = Column(String(50))
+    business_interests = Column(ARRAY(String))
+    created_at = Column(TIMESTAMP, default=datetime.utcnow)
+    updated_at = Column(TIMESTAMP, default=datetime.utcnow)
+    is_active = Column(Boolean, default=True)   # <-- THIS DOESN'T EXIST IN DB
+

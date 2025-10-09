@@ -1,26 +1,30 @@
-from pydantic import BaseModel,EmailStr
+from pydantic import BaseModel,EmailStr, Field
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 
-# For creating a new user
+# -----------------------------
+# Input schema for user creation
+# -----------------------------
 class UserCreate(BaseModel):
-    first_name: str
-    last_name: str
-    email: EmailStr
-    password: str
-    business_name: Optional[str] = None
-    location: Optional[str] = None
-    business_interests: Optional[List[str]] = []
+    first_name: str = Field(..., example="John")
+    last_name: str = Field(..., example="Doe")
+    email: EmailStr = Field(..., example="john.doe@example.com")
+    password: str = Field(..., min_length=6, example="password123")
+    business_name: Optional[str] = Field(None, example="My Business")
+    location: str = Field(..., example="mumbai")
+    business_interests: List[str] = Field(..., example=["electronics", "books"])
 
-# For returning user info (without password)
+# -----------------------------
+# Output schema for user data
+# -----------------------------
 class UserOut(BaseModel):
     id: int
     first_name: str
     last_name: str
     email: EmailStr
-    business_name: Optional[str] = None
-    location: Optional[str] = None
-    business_interests: Optional[List[str]] = []
+    business_name: Optional[str]
+    location: str
+    business_interests: List[str]
     created_at: datetime
     updated_at: datetime
 
