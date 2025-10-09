@@ -14,7 +14,7 @@ import {
   Settings, 
   LogOut,
   Menu,
-  X
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -56,6 +56,7 @@ export default function Sidebar() {
     setLocation('/login');
   };
 
+  // ✅ Helper to get user initials
   const getUserInitials = () => {
     if (!user?.name) return "U";
     const names = user.name.split(' ');
@@ -79,15 +80,15 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile overlay */}
+      {/* Overlay for mobile */}
       {!isCollapsed && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setIsCollapsed(true)}
         />
       )}
 
-      <div 
+      <div
         className={cn(
           "fixed left-0 top-0 h-full bg-card border-r border-border z-50 transform transition-transform duration-300",
           isCollapsed ? "w-16" : "w-64",
@@ -98,7 +99,12 @@ export default function Sidebar() {
         {/* Header */}
         <div className="p-6 border-b border-border">
           <div className="flex items-center justify-between">
-            <div className={cn("flex items-center space-x-3", isCollapsed && "justify-center")}>
+            <div
+              className={cn(
+                "flex items-center space-x-3",
+                isCollapsed && "justify-center"
+              )}
+            >
               <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
                 <ChartLine className="text-primary-foreground h-5 w-5" />
               </div>
@@ -109,14 +115,19 @@ export default function Sidebar() {
                 </div>
               )}
             </div>
-            
+
+            {/* Toggle Sidebar (mobile only) */}
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsCollapsed(!isCollapsed)}
               className="lg:hidden"
             >
-              {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
+              {isCollapsed ? (
+                <Menu className="h-4 w-4" />
+              ) : (
+                <X className="h-4 w-4" />
+              )}
             </Button>
           </div>
         </div>
@@ -125,9 +136,10 @@ export default function Sidebar() {
         <nav className="p-4 space-y-2 flex-1">
           {NAVIGATION_ITEMS.map((item) => {
             const Icon = item.icon;
-            const isActive = location === item.href || 
+            const isActive =
+              location === item.href ||
               (item.href === "/dashboard" && location === "/");
-            
+
             return (
               <Link key={item.href} href={item.href}>
                 <Button
@@ -147,10 +159,12 @@ export default function Sidebar() {
 
         {/* User Profile Section */}
         <div className="absolute bottom-4 left-4 right-4">
-          <div className={cn(
-            "flex items-center p-3 bg-muted rounded-lg",
-            isCollapsed && "justify-center"
-          )}>
+          <div
+            className={cn(
+              "flex items-center p-3 bg-muted rounded-lg",
+              isCollapsed && "justify-center"
+            )}
+          >
             <Avatar className="h-10 w-10">
               <AvatarFallback className="bg-primary text-primary-foreground">
                 {getUserInitials()}
@@ -179,7 +193,7 @@ export default function Sidebar() {
                 </Badge>
               </div>
             )}
-            
+
             <Button
               variant="ghost"
               size="sm"

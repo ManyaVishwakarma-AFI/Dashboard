@@ -570,3 +570,6 @@ export default function FiltersPanel({ onFiltersApply }: FiltersPanelProps) {
     </Card>
   );
 }
+ 
+ 
+ 

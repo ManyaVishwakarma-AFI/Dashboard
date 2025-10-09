@@ -1,28 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Bot, 
-  Target, 
-  TrendingUp, 
-  MapPin, 
-  Lightbulb, 
-  RefreshCw,
-  ExternalLink
-} from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
-
-interface AIRecommendationsProps {
-  userLocation: string;
-}
+import { Bot, Lightbulb, RefreshCw, Target, TrendingUp } from "lucide-react";
 
 interface RecommendationCardProps {
   icon: React.ReactNode;
   title: string;
   description: string;
-  action?: string;
   gradient: string;
 }
 
@@ -37,44 +23,63 @@ function RecommendationCard({ icon, title, description, action, gradient }: Reco
         {icon}
         <h4 className="font-semibold ml-2">{title}</h4>
       </div>
-      <p className="text-sm mb-2 text-white/90">{description}</p>
-      {action && (
-        <p className="text-xs font-medium text-white/95 bg-white/20 px-2 py-1 rounded">
-          {action}
-        </p>
-      )}
+      <p className="text-sm text-white/90">{description}</p>
     </div>
   );
 }
 
-export default function AIRecommendations({ userLocation }: AIRecommendationsProps) {
-  const { data: recommendations, isLoading, refetch } = useQuery<OllamaRecommendationResponse>({
-    queryKey: ["/ai/query", userLocation],
-    queryFn: async () => {
-      const response = await apiRequest("POST", "/ai/query", {
-        question: `Provide business insights and recommendations for the ${userLocation} market.`,
-        source: "products",
-        limit: 50
-      });
-      return response.json();
-    },
-    staleTime: 10 * 60 * 1000,
-    retry: 1,
-  });
+interface AIRecommendationsProps {}
 
-  // Parse AI text response into array of recommendations
-  const recsArray = recommendations?.answer
-    ? recommendations.answer.split("\n").filter(line => line.trim() !== "")
-    : [
-        "Check top-selling products",
-        "Optimize pricing strategy",
-        "Consider geographic expansion"
-      ];
+export default function AIRecommendations({}: AIRecommendationsProps) {
+  const [summary, setSummary] = useState<string>("");
+  const [recommendations, setRecommendations] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [table, setTable] = useState<"both" | "products" | "amazon_reviews">("both");
 
-  const defaultCards = [
-    { icon: <Target className="h-5 w-5" />, title: "Top Opportunity", gradient: "from-green-500 to-emerald-600" },
-    { icon: <TrendingUp className="h-5 w-5" />, title: "Price Optimization", gradient: "from-blue-500 to-cyan-600" },
-    { icon: <MapPin className="h-5 w-5" />, title: "Geographic Expansion", gradient: "from-purple-500 to-violet-600" },
+  const fetchAIRecommendations = async () => {
+    setLoading(true);
+    try {
+      // Set table-specific prompts
+      const prompts: Record<string, string> = {
+        products: `Provide a concise summary and 2 actionable recommendations for the Products table based on sales, ratings, and price trends. Format the first line as summary and next two lines as separate recommendations.`,
+        amazon_reviews: `Provide a concise summary and 2 actionable recommendations for the Amazon_Reviews table based on review content, ratings, and helpful votes. Format the first line as summary and next two lines as separate recommendations.`,
+      };
+
+      const sources = table === "both" ? ["products", "amazon_reviews"] : [table];
+
+      const aiAnswers = await Promise.all(
+        sources.map(async (source) => {
+          const res = await fetch("http://127.0.0.1:9001/ai/query", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question: prompts[source], source, limit: 5 }),
+          });
+          const json = await res.json();
+          return json.answer || "";
+        })
+      );
+
+      const allText = aiAnswers.filter(Boolean).join("\n");
+      const lines = allText.split("\n").filter((line: string) => line.trim() !== "");
+
+      setSummary(lines[0] || "");
+      setRecommendations(lines.slice(1, 3)); // Only 2 actionable recommendations
+    } catch (err) {
+      console.error("AI recommendation error:", err);
+      setSummary("Unable to generate summary.");
+      setRecommendations([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAIRecommendations();
+  }, [table]);
+
+  const cardStyles = [
+    { icon: <Target className="h-5 w-5" />, gradient: "from-green-500 to-emerald-600", title: "Top Opportunity" },
+    { icon: <TrendingUp className="h-5 w-5" />, gradient: "from-blue-500 to-cyan-600", title: "Price Optimization" },
   ];
 
   return (
@@ -85,25 +90,31 @@ export default function AIRecommendations({ userLocation }: AIRecommendationsPro
             <Bot className="text-primary-foreground h-6 w-6" />
           </div>
           <div>
-            <CardTitle className="text-lg font-semibold">
-              AI Recommendations for You
-            </CardTitle>
+            <CardTitle className="text-lg font-semibold">AI Recommendations</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Personalized insights based on {userLocation} market trends
+              Personalized insights based on selected table
             </p>
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-2">
-          <Badge variant="secondary">AI Powered</Badge>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => refetch()}
-            disabled={isLoading}
-            data-testid="button-refresh-recommendations"
+          <Badge variant="secondary" className="ai-badge">
+            AI Powered
+          </Badge>
+
+          {/* Table Dropdown */}
+          <select
+            className="border border-gray-300 rounded px-2 py-1 text-sm bg-transparent"
+            value={table}
+            onChange={(e) => setTable(e.target.value as any)}
           >
-            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <option value="both">Both Tables</option>
+            <option value="products">Products Only</option>
+            <option value="amazon_reviews">Amazon Reviews Only</option>
+          </select>
+
+          <Button variant="ghost" size="sm" onClick={fetchAIRecommendations} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           </Button>
         </div>
       </CardHeader>

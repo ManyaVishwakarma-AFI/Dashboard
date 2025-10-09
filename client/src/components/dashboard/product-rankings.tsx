@@ -218,18 +218,18 @@ export default function ProductRankings({ filters }: ProductRankingsProps) {
     <div className="grid grid-cols-1 gap-6 mb-8">
       <Card className="bg-card rounded-xl p-6 border hover:shadow-md transition-shadow">
         <CardHeader className="flex flex-row items-center justify-between mb-4 p-0">
-          <CardTitle className="text-lg font-semibold">
-            Top Trending Products
-            {filters && filters.category !== "All Categories" && (
-              <span className="text-sm font-normal text-muted-foreground ml-2">
-                in {filters.category}
-              </span>
-            )}
-          </CardTitle>
-          <Badge variant="secondary" className="text-xs">By Reviews</Badge>
+          <CardTitle className="text-lg font-semibold">Top Trending Products</CardTitle>
+          <Badge variant="secondary" className="text-xs">Live Data</Badge>
         </CardHeader>
 
         <CardContent className="p-0">
+          {/* AI Summary */}
+          {summaryLoading ? (
+            <p className="text-sm text-muted-foreground mb-3">Generating AI summary...</p>
+          ) : summary ? (
+            <p className="text-sm font-medium mb-3">{summary}</p>
+          ) : null}
+
           <div className="space-y-4">
             {isLoading ? (
               Array.from({ length: 5 }).map((_, index) => (
@@ -258,3 +258,5 @@ export default function ProductRankings({ filters }: ProductRankingsProps) {
     </div>
   );
 }
+ 
+ 

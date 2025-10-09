@@ -49,7 +49,6 @@ def decimal_to_float(obj):
     except Exception:
         return str(obj)
 
-
 @app.get("/")
 def read_root():
     return {"message": "Product API running"}
@@ -320,6 +319,60 @@ def get_top_items(
     elif table == "amazon_reviews":
         data = crud.get_top_products_amazon(db, n)
         return {"table": "amazon_reviews", "count": len(data), "data": data}
+    else:
+        return {"error": "Invalid table. Use 'products' or 'amazon_reviews'."}
+    
+@app.get("/top_forecast")
+def top_forecasted_products(n: int = Query(10, description="Number of top products"), db: Session = Depends(get_db)):
+    """
+    Fetch top N products by forecasted next price
+    """
+    forecast_list = crud.get_top_forecasted_products(db, n)
+    return {"table": "products_forecast", "count": len(forecast_list), "data": forecast_list} 
+
+@app.get("/notifications")
+def get_notifications(
+    table: str = Query("products", description="Choose 'products' or 'amazon_reviews'"),
+    limit: int = Query(5, description="Number of recent notifications"),
+    db: Session = Depends(get_db),
+):
+    """
+    Fetch latest product/review updates for notification bell.
+    """
+    table = table.lower()
+
+    if table == "products":
+        query = text(f"""
+            SELECT id, title AS message, category, price
+            FROM products
+            ORDER BY id DESC
+            LIMIT {limit}
+        """)
+        rows = db.execute(query).fetchall()
+        data = [
+            {
+                "id": row.id,
+                "message": f"New product added: {row.message} (₹{row.price})",
+                "time": "Just now",
+            }
+            for row in rows
+        ]
+    elif table == "amazon_reviews":
+        query = text(f"""
+            SELECT product_title, review_headline, review_date
+            FROM "Amazon_Reviews"
+            ORDER BY review_date DESC
+            LIMIT {limit}
+        """)
+        rows = db.execute(query).fetchall()
+        data = [
+            {
+                "id": i + 1,
+                "message": f"New review: {row.review_headline} on {row.product_title}",
+                "time": str(row.review_date),
+            }
+            for i, row in enumerate(rows)
+        ]
     else:
         return {"error": "Invalid table. Use 'products' or 'amazon_reviews'."}
 

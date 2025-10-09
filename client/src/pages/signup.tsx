@@ -367,7 +367,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChartLine } from "lucide-react";
-
+ 
 interface SignupFormData {
   firstName: string;
   lastName: string;
@@ -377,7 +377,7 @@ interface SignupFormData {
   location: string;
   businessInterests: string[];
 }
-
+ 
 const LOCATIONS = [
   { value: "mumbai", label: "Mumbai, India" },
   { value: "delhi", label: "Delhi, India" },
@@ -446,7 +446,7 @@ export default function Signup() {
       toast({ title: "Terms required", description: "Please agree to the Terms of Service and Privacy Policy.", variant: "destructive" });
       return;
     }
-
+ 
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
       toast({ title: "Missing fields", description: "Please fill in all required fields.", variant: "destructive" });
       return;
@@ -503,7 +503,16 @@ export default function Signup() {
       setIsLoading(false);
     }
   };
-
+ 
+  const handleInterestToggle = (interestId: string) => {
+    setFormData(prev => {
+      const interests = prev.businessInterests.includes(interestId)
+        ? prev.businessInterests.filter(id => id !== interestId)
+        : [...prev.businessInterests, interestId];
+      return { ...prev, businessInterests: interests };
+    });
+  };
+ 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-purple-50 dark:from-gray-900 dark:via-background dark:to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
@@ -541,7 +550,7 @@ export default function Signup() {
                 <Label htmlFor="email">Email Address *</Label>
                 <Input id="email" type="email" placeholder="your@email.com" value={formData.email} onChange={handleInputChange("email")} required />
               </div>
-
+ 
               <div className="space-y-2">
                 <Label htmlFor="password">Password *</Label>
                 <Input id="password" type="password" placeholder="••••••••" value={formData.password} onChange={handleInputChange("password")} required />
@@ -552,7 +561,7 @@ export default function Signup() {
                 <Label htmlFor="businessName">Business Name (Optional)</Label>
                 <Input id="businessName" placeholder="Your Business" value={formData.businessName} onChange={handleInputChange("businessName")} />
               </div>
-
+ 
               <div className="space-y-2">
                 <Label htmlFor="location">Location *</Label>
                 <Select value={formData.location} onValueChange={handleLocationChange}>
@@ -595,13 +604,27 @@ export default function Signup() {
                 {isLoading ? "Creating Account..." : "Create Account"}
               </Button>
             </form>
-
+ 
+            {/* Login Link */}
             <p className="text-center text-sm text-muted-foreground mt-6">
               Already have an account? <Link href="/login"><Button variant="link" className="p-0 h-auto text-primary font-medium">Sign in</Button></Link>
             </p>
+ 
+            {/* Info Note */}
+            <div className="text-center pt-4 border-t mt-6">
+              <p className="text-xs text-muted-foreground">
+                Your preferences will help customize your analytics dashboard with relevant insights.
+              </p>
+            </div>
           </CardContent>
         </Card>
+ 
+        {/* Footer */}
+        <div className="text-center mt-6 text-sm text-muted-foreground">
+          <p>Get personalized insights based on your business interests</p>
+        </div>
       </div>
     </div>
   );
 }
+ 
