@@ -62,7 +62,8 @@
 # ==========================================
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.orm import Session
-from passlib.context import CryptContext
+# REPLACE with this:
+import bcrypt
 from datetime import datetime
 from typing import List
 
@@ -70,20 +71,20 @@ from ..database_config import get_db
 from ..models import User
 from ..schemas import UserCreate, UserOut  # make sure you have these schemas
 
-router = APIRouter(prefix="/users", tags=["Users"])
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+router = APIRouter(tags=["Users"])
 
 
 def hash_password(password: str) -> str:
     """
-    Truncate password to 72 bytes for bcrypt, then hash it.
+    Hash password using bcrypt directly (compatible with Python 3.13)
     """
-    max_bytes = 72
-    password_bytes = password.encode("utf-8")
-    if len(password_bytes) > max_bytes:
-        password_bytes = password_bytes[:max_bytes]
-    return pwd_context.hash(password_bytes)
-
+    # Truncate to 72 bytes if needed
+    password_bytes = password.encode("utf-8")[:72]
+    # Generate salt and hash
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    # Return as string
+    return hashed.decode("utf-8")
 
 
 def format_business_interests(interests: List[str]) -> List[str]:
