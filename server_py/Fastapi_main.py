@@ -325,7 +325,7 @@ def top_forecasted_products(n: int = Query(10, description="Number of top produc
 
 
 from .routers import users
-app.include_router(users.router, prefix="/users", tags=["users"])
+app.include_router(users.router, prefix="/users")
 
 
 if __name__ == "__main__":
