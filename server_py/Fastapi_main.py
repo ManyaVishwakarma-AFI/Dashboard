@@ -223,6 +223,10 @@ def analytics_by_category(db: Session = Depends(get_db)):
 
 #     return {"answer": answer}
 
+
+# --------------------------
+# AI Query Endpoint
+# --------------------------
 @app.post("/ai/query")
 def ask_ai(query: AIQuery, db: Session = Depends(get_db)):
     limit = query.limit or 50  # default 50 if not provided
@@ -294,6 +298,10 @@ def ask_ai(query: AIQuery, db: Session = Depends(get_db)):
 # def top_products_amazon_reviews(n: int = 10, db: Session = Depends(get_db)):
 #     return crud.get_top_products_amazon(db, n)
 
+
+# --------------------------
+# Forecast Endpoints
+# --------------------------
 @app.get("/top")
 def get_top_items(
     table: str = Query(..., description="Choose 'products' or 'amazon_reviews'"),
@@ -323,10 +331,168 @@ def top_forecasted_products(n: int = Query(10, description="Number of top produc
     forecast_list = crud.get_top_forecasted_products(db, n)
     return {"table": "products_forecast", "count": len(forecast_list), "data": forecast_list}    
 
-
+# --------------------------
+# signup/login Endpoints
+# --------------------------
 from .routers import users
 app.include_router(users.router, prefix="/users")
 
+# Add these endpoints to your Fastapi_main.py
+
+# --------------------------
+# Filter Options Endpoint
+# --------------------------
+@app.get("/Amazon_Reviews/filter-options")
+def get_filter_options(db: Session = Depends(get_db)):
+    """
+    Get available filter options (categories, ratings, price range)
+    """
+    try:
+        # Get unique categories from Amazon_Reviews
+        categories_query = db.query(models.AmazonReview.product_category)\
+            .distinct()\
+            .filter(models.AmazonReview.product_category.isnot(None))\
+            .filter(models.AmazonReview.product_category != '')\
+            .all()
+        category_list = sorted([cat[0] for cat in categories_query if cat[0]])
+        
+        # Get unique star ratings from Amazon_Reviews
+        ratings_query = db.query(models.AmazonReview.star_rating)\
+            .distinct()\
+            .filter(models.AmazonReview.star_rating.isnot(None))\
+            .order_by(models.AmazonReview.star_rating)\
+            .all()
+        rating_list = sorted([int(r[0]) for r in ratings_query if r[0] and r[0] > 0])
+        
+        # Get price range from products table
+        price_stats = db.query(
+            func.min(models.Product.price).label('min_price'),
+            func.max(models.Product.price).label('max_price')
+        ).filter(models.Product.price.isnot(None)).first()
+        
+        min_price = float(price_stats.min_price) if price_stats and price_stats.min_price else 0
+        max_price = float(price_stats.max_price) if price_stats and price_stats.max_price else 100000
+        
+        return {
+            "categories": category_list,
+            "ratings": rating_list,
+            "price_range": {
+                "min": int(min_price),
+                "max": int(max_price)
+            }
+        }
+    except Exception as e:
+        print(f"Error fetching filter options: {e}")
+        return {
+            "error": str(e),
+            "categories": [],
+            "ratings": [1, 2, 3, 4, 5],
+            "price_range": {"min": 0, "max": 100000}
+        }
+
+
+# --------------------------
+# Filtered Analytics Endpoint
+# --------------------------
+@app.get("/Amazon_Reviews/analytics/filtered")
+def get_filtered_analytics(
+    category: Optional[str] = None,
+    min_rating: Optional[int] = None,
+    date_range: Optional[str] = "all",
+    db: Session = Depends(get_db)
+):
+    """
+    Get analytics data based on applied filters for charts
+    """
+    try:
+        # Base query
+        query = db.query(models.AmazonReview)
+        
+        # Apply filters
+        if category and category != "All Categories":
+            query = query.filter(models.AmazonReview.product_category == category)
+        
+        if min_rating and min_rating > 0:
+            query = query.filter(models.AmazonReview.star_rating >= min_rating)
+        
+        # Date range filter
+        if date_range != "all":
+            from datetime import datetime, timedelta
+            today = datetime.now()
+            
+            if date_range == "7d":
+                start_year = today.year
+                # Simple approximation - filter by year
+            elif date_range == "30d":
+                start_year = today.year
+            elif date_range == "90d":
+                start_year = today.year
+            elif date_range == "1y":
+                start_year = today.year - 1
+            else:
+                start_year = None
+            
+            if start_year:
+                query = query.filter(models.AmazonReview.review_year >= start_year)
+        
+        # Get sentiment distribution
+        sentiment_dist = query.with_entities(
+            models.AmazonReview.Sentiment_pc,
+            func.count(models.AmazonReview.review_id).label('count')
+        ).group_by(models.AmazonReview.Sentiment_pc).all()
+        
+        # Get rating distribution
+        rating_dist = query.with_entities(
+            models.AmazonReview.star_rating,
+            func.count(models.AmazonReview.review_id).label('count')
+        ).group_by(models.AmazonReview.star_rating).all()
+        
+        # Get category stats
+        category_stats = query.with_entities(
+            models.AmazonReview.product_category,
+            func.count(models.AmazonReview.review_id).label('count'),
+            func.avg(models.AmazonReview.star_rating).label('avg_rating')
+        ).group_by(models.AmazonReview.product_category).all()
+        
+        # Get top products
+        top_products = query.with_entities(
+            models.AmazonReview.product_title,
+            func.count(models.AmazonReview.review_id).label('review_count'),
+            func.avg(models.AmazonReview.star_rating).label('avg_rating')
+        ).group_by(models.AmazonReview.product_title)\
+         .order_by(func.count(models.AmazonReview.review_id).desc())\
+         .limit(10).all()
+        
+        return {
+            "sentiment_distribution": [
+                {"sentiment": s[0], "count": s[1]} for s in sentiment_dist
+            ],
+            "rating_distribution": [
+                {"rating": r[0], "count": r[1]} for r in rating_dist
+            ],
+            "category_stats": [
+                {
+                    "category": c[0],
+                    "count": c[1],
+                    "avg_rating": float(c[2]) if c[2] else 0
+                } for c in category_stats
+            ],
+            "top_products": [
+                {
+                    "product_title": p[0],
+                    "review_count": p[1],
+                    "avg_rating": float(p[2]) if p[2] else 0
+                } for p in top_products
+            ],
+            "total_reviews": query.count(),
+            "average_rating": float(query.with_entities(
+                func.avg(models.AmazonReview.star_rating)
+            ).scalar() or 0)
+        }
+        
+    except Exception as e:
+        print(f"Error getting filtered analytics: {e}")
+        return {"error": str(e)}
 
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

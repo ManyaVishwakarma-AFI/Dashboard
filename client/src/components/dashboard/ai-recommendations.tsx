@@ -13,7 +13,6 @@ import {
   ExternalLink
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-import type { AIInsight } from "@/../../server/services/openai";
 
 interface AIRecommendationsProps {
   userLocation: string;
@@ -25,6 +24,10 @@ interface RecommendationCardProps {
   description: string;
   action?: string;
   gradient: string;
+}
+
+interface OllamaRecommendationResponse {
+  answer: string; // AI output text
 }
 
 function RecommendationCard({ icon, title, description, action, gradient }: RecommendationCardProps) {
@@ -45,40 +48,33 @@ function RecommendationCard({ icon, title, description, action, gradient }: Reco
 }
 
 export default function AIRecommendations({ userLocation }: AIRecommendationsProps) {
-  const { data: recommendations, isLoading, refetch } = useQuery({
-    queryKey: ["/api/ai/recommendations", userLocation],
+  const { data: recommendations, isLoading, refetch } = useQuery<OllamaRecommendationResponse>({
+    queryKey: ["/ai/query", userLocation],
     queryFn: async () => {
-      const response = await apiRequest("POST", "/api/ai/recommendations", {
-        userLocation
+      const response = await apiRequest("POST", "/ai/query", {
+        question: `Provide business insights and recommendations for the ${userLocation} market.`,
+        source: "products",
+        limit: 50
       });
-      return response.json() as Promise<AIInsight>;
+      return response.json();
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000,
     retry: 1,
   });
 
-  const defaultRecommendations = [
-    {
-      icon: <Target className="h-5 w-5" />,
-      title: "Top Opportunity",
-      description: `Wireless Gaming Headsets are trending +67% in ${userLocation}`,
-      action: "Expected profit: 42% margin",
-      gradient: "from-green-500 to-emerald-600"
-    },
-    {
-      icon: <TrendingUp className="h-5 w-5" />,
-      title: "Price Optimization",
-      description: "Reduce Smart Watch prices by 8% to beat competitors",
-      action: "Increase sales by ~25%",
-      gradient: "from-blue-500 to-cyan-600"
-    },
-    {
-      icon: <MapPin className="h-5 w-5" />,
-      title: "Geographic Expansion",
-      description: `Consider expanding to Pune - similar demographics to ${userLocation}`,
-      action: "Potential 30% revenue increase",
-      gradient: "from-purple-500 to-violet-600"
-    }
+  // Parse AI text response into array of recommendations
+  const recsArray = recommendations?.answer
+    ? recommendations.answer.split("\n").filter(line => line.trim() !== "")
+    : [
+        "Check top-selling products",
+        "Optimize pricing strategy",
+        "Consider geographic expansion"
+      ];
+
+  const defaultCards = [
+    { icon: <Target className="h-5 w-5" />, title: "Top Opportunity", gradient: "from-green-500 to-emerald-600" },
+    { icon: <TrendingUp className="h-5 w-5" />, title: "Price Optimization", gradient: "from-blue-500 to-cyan-600" },
+    { icon: <MapPin className="h-5 w-5" />, title: "Geographic Expansion", gradient: "from-purple-500 to-violet-600" },
   ];
 
   return (
@@ -99,9 +95,7 @@ export default function AIRecommendations({ userLocation }: AIRecommendationsPro
         </div>
         
         <div className="flex items-center space-x-2">
-          <Badge variant="secondary" className="ai-badge">
-            AI Powered
-          </Badge>
+          <Badge variant="secondary">AI Powered</Badge>
           <Button
             variant="ghost"
             size="sm"
@@ -115,88 +109,30 @@ export default function AIRecommendations({ userLocation }: AIRecommendationsPro
       </CardHeader>
 
       <CardContent className="p-0">
-        {/* Summary Section */}
-        {recommendations?.summary && (
-          <div className="mb-6 p-4 bg-white/70 dark:bg-black/20 rounded-lg">
-            <h3 className="font-semibold mb-2 flex items-center">
-              <Lightbulb className="h-4 w-4 mr-2 text-yellow-600" />
-              Business Health Summary
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {recommendations.summary}
-            </p>
-          </div>
-        )}
-
         {/* Recommendations Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          {isLoading ? (
-            Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="bg-white/70 rounded-lg p-4">
-                <div className="flex items-center mb-2">
-                  <Skeleton className="h-5 w-5 mr-2" />
-                  <Skeleton className="h-4 w-24" />
+          {isLoading
+            ? Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="bg-white/70 rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    <Skeleton className="h-5 w-5 mr-2" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-3 w-20" />
                 </div>
-                <Skeleton className="h-4 w-full mb-2" />
-                <Skeleton className="h-3 w-20" />
-              </div>
-            ))
-          ) : recommendations?.recommendations?.length ? (
-            recommendations.recommendations.slice(0, 3).map((rec, index) => {
-              const cardProps = defaultRecommendations[index] || defaultRecommendations[0];
-              return (
+              ))
+            : recsArray.slice(0, 3).map((rec, index) => (
                 <RecommendationCard
                   key={index}
-                  icon={cardProps.icon}
-                  title={cardProps.title}
+                  icon={defaultCards[index].icon}
+                  title={defaultCards[index].title}
                   description={rec}
-                  gradient={cardProps.gradient}
+                  gradient={defaultCards[index].gradient}
                 />
-              );
-            })
-          ) : (
-            defaultRecommendations.map((rec, index) => (
-              <RecommendationCard
-                key={index}
-                {...rec}
-              />
-            ))
-          )}
+              ))
+          }
         </div>
-
-        {/* Trending Insights */}
-        {recommendations?.trends?.length && (
-          <div className="mb-4 p-4 bg-blue-50/50 dark:bg-blue-950/20 rounded-lg">
-            <h3 className="font-semibold mb-2 text-blue-800 dark:text-blue-200">
-              Market Trends
-            </h3>
-            <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-              {recommendations.trends.slice(0, 3).map((trend, index) => (
-                <li key={index} className="flex items-start">
-                  <span className="mr-2">•</span>
-                  {trend}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Opportunities */}
-        {recommendations?.opportunities?.length && (
-          <div className="mb-4 p-4 bg-green-50/50 dark:bg-green-950/20 rounded-lg">
-            <h3 className="font-semibold mb-2 text-green-800 dark:text-green-200">
-              Growth Opportunities
-            </h3>
-            <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
-              {recommendations.opportunities.slice(0, 3).map((opportunity, index) => (
-                <li key={index} className="flex items-start">
-                  <span className="mr-2">•</span>
-                  {opportunity}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
 
         {/* Call to Action */}
         <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t border-white/20">
