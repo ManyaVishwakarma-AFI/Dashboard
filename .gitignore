@@ -70,3 +70,5 @@ test.db
 *.swp
 *.swo
 *~
+
+fetch_changes.log
