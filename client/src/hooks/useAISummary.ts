@@ -1,3 +1,6 @@
+// ============================================
+// FILE 1: src/hooks/useAISummary.ts (UPDATED FOR OLLAMA)
+// ============================================
 import { useEffect, useState } from "react";
 
 export function useAISummary(question: string, source: string, data: any[], limit: number) {
@@ -14,12 +17,11 @@ export function useAISummary(question: string, source: string, data: any[], limi
     const fetchSummary = async () => {
       setLoading(true);
       try {
-        // Add "in two concise lines" to the question
-        const prompt = `Summarize the following data in **maximum two lines** for quick insights:\n\nData: ${JSON.stringify(
-          data
+        const prompt = `Analyze this ${source} data and provide 2-3 key actionable insights in brief bullet points (maximum 2 lines total):\n\nData: ${JSON.stringify(
+          data.slice(0, 10)
         )}\n\nQuestion: ${question}`;
 
-        const res = await fetch("http://localhost:8000/ai/query", {
+        const res = await fetch("http://127.0.0.1:9001/ai/query", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ question: prompt, source, limit }),

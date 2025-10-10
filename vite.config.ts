@@ -25,7 +25,7 @@ export default defineConfig({
     proxy: {
       // All frontend requests to /api will be forwarded to your backend
       "/api": {
-        target: "http://122.176.108.253:9002", // your FastAPI/Express backend
+        target: "http://127.0.0.1:9001", // your FastAPI/Express backend
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
       },

@@ -256,7 +256,7 @@ interface FiltersPanelProps {
 }
 
 export default function FiltersPanel({ onFiltersApply }: FiltersPanelProps) {
-  const BASE_URL = "http://122.176.108.253:9001";
+  const BASE_URL = "http://127.0.0.1:9001";
   
   const [filters, setFilters] = useState<FilterState>({
     category: "All Categories",
