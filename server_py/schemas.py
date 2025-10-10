@@ -139,3 +139,5 @@ class CategoryAnalyticsResponse(BaseModel):
 class AIQuery(BaseModel):
     question: str
 
+class AIResponse(BaseModel):
+    answer: str
