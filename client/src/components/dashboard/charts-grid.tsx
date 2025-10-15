@@ -44,7 +44,7 @@
 // }
  
 // export default function ChartsGrid() {
-//   const BASE_URL = "http://127.0.0.1:9001"; // your remote server IP
+//   const BASE_URL = "http://localhost:8000"; // your remote server IP
  
 //   const [topProducts, setTopProducts] = useState<any[]>([]);
 //   const [topReviews, setTopReviews] = useState<any[]>([]);
@@ -199,7 +199,7 @@
 // }
 
 // export default function ChartsGrid() {
-//   const BASE_URL = "http://127.0.0.1:9001";
+//   const BASE_URL = "http://localhost:8000";
 //   const [topProducts, setTopProducts] = useState<any[]>([]);
 //   const [topReviews, setTopReviews] = useState<any[]>([]);
 //   const [categories, setCategories] = useState<any[]>([]);
@@ -319,7 +319,7 @@
 // }
 
 // export default function ChartsGrid({ filters }: ChartsGridProps) {
-//   const BASE_URL = "http://127.0.0.1:9001";
+//   const BASE_URL = "http://localhost:8000";
 //   const [topProducts, setTopProducts] = useState<any[]>([]);
 //   const [topReviews, setTopReviews] = useState<any[]>([]);
 //   const [categories, setCategories] = useState<any[]>([]);
@@ -551,7 +551,7 @@ function ChartCard({ title, children, isLoading, chartData, chartType }: ChartCa
 }
 
 export default function ChartsGrid({ filters }: ChartsGridProps) {
-  const BASE_URL = "http://127.0.0.1:9001";
+  const BASE_URL = "http://localhost:8000";
   const [topProducts, setTopProducts] = useState<any[]>([]);
   const [topReviews, setTopReviews] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);

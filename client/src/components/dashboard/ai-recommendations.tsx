@@ -44,7 +44,7 @@ export default function AIRecommendations({ userLocation }: AIRecommendationsPro
   const { data: recommendations, isLoading, refetch } = useQuery({
     queryKey: ["/ai/recommendations", userLocation],
     queryFn: async () => {
-      const response = await fetch("http://127.0.0.1:9001/ai/query", {
+      const response = await fetch("http://localhost:8000/ai/query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

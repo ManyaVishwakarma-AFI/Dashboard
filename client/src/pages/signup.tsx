@@ -777,7 +777,7 @@ export default function Signup() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // UPDATE THIS TO YOUR SERVER IP
-  const API_BASE_URL = "http://127.0.0.1:9001";
+  const API_BASE_URL = "http://localhost:8000";
 
   const handleInputChange = (field: keyof SignupFormData) => (
     e: React.ChangeEvent<HTMLInputElement>

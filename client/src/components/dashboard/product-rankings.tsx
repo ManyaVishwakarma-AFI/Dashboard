@@ -46,7 +46,7 @@
 // }
  
 // export default function ProductRankings() {
-//   const BASE_URL = "http://127.0.0.1:9001"; // Remote server IP
+//   const BASE_URL = "http://localhost:8000"; // Remote server IP
 //   const [trending, setTrending] = useState<TrendingProduct[]>([]);
 //   const [isLoading, setIsLoading] = useState(true);
  
@@ -167,7 +167,7 @@ function ProductCard({ product, index }: { product: TrendingProduct; index: numb
 }
 
 export default function ProductRankings({ filters }: ProductRankingsProps) {
-  const BASE_URL = "http://127.0.0.1:9001";
+  const BASE_URL = "http://localhost:8000";
   const [trending, setTrending] = useState<TrendingProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 

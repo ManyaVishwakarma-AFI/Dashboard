@@ -21,7 +21,7 @@ export function useAISummary(question: string, source: string, data: any[], limi
           data.slice(0, 10)
         )}\n\nQuestion: ${question}`;
 
-        const res = await fetch("http://127.0.0.1:9001/ai/query", {
+        const res = await fetch("http://localhost:8000/ai/query", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ question: prompt, source, limit }),
