@@ -1,121 +1,153 @@
-# from apscheduler.schedulers.background import BackgroundScheduler
-# import requests
-
-# scheduler = BackgroundScheduler()
-
-# def refresh_dashboard_cache():
-#     """
-#     This job automatically calls the FastAPI endpoint
-#     to refresh the dashboard cache.
-#     """
-#     try:
-#         response = requests.post("http://127.0.0.1:8000/api/cache/refresh")
-#         print(f"[CRON] Cache refresh triggered → {response.status_code}")
-#     except Exception as e:
-#         print(f"[CRON] Cache refresh failed → {e}")
-
-# def start_scheduler():
-#     """
-#     Starts the scheduler with a recurring cache refresh job.
-#     """
-#     scheduler.add_job(
-#         refresh_dashboard_cache,
-#         "interval",
-#         minutes=30,  
-#         id="cache_refresh_job"
-#     )
-#     scheduler.start()
-#     print("✅ Scheduler started - auto-refresh every 30 minutes")
-
-# def stop_scheduler():
-#     scheduler.shutdown()
-#     print("🛑 Scheduler stopped")
-
-# def get_scheduler_status():
-#     return {
-#         "running": scheduler.running,
-#         "jobs": [
-#             {
-#                 "id": job.id,
-#                 "name": job.name,
-#                 "next_run_time": str(job.next_run_time)
-#             }
-#             for job in scheduler.get_jobs()
-#         ]
-#     }
-
-
-
-
-
-
 # ============================================
-# SOLUTION 4: Update schedule.py
+# File: server_py/schedule.py (UPDATED)
 # ============================================
-# File: server_py/schedule.py (CORRECTED)
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 from datetime import datetime
 import logging
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 scheduler = BackgroundScheduler(timezone='Asia/Kolkata')
 
 def sync_all_data():
-    """Sync all data from RapidAPI - Runs twice daily"""
-    # Import here to avoid circular import
+    """Sync all data from RapidAPI - Runs on schedule"""
     from server_py.database_sync_service import data_sync_service
     
-    logger.info("="*60)
-    logger.info(f"🔄 STARTING DATA SYNC - {datetime.now()}")
-    logger.info("="*60)
+    logger.info("\n" + "="*70)
+    logger.info(f"🔄 SCHEDULED DATA SYNC STARTED - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info("="*70)
     
     try:
-        data_sync_service.full_sync()
-        logger.info("="*60)
-        logger.info("✅ DATA SYNC COMPLETED SUCCESSFULLY")
-        logger.info("="*60)
+        result = data_sync_service.full_sync()
+        
+        logger.info("\n" + "="*70)
+        logger.info("✅ SCHEDULED DATA SYNC COMPLETED SUCCESSFULLY")
+        logger.info(f"📊 Total items synced: {result.get('total', 0)}")
+        logger.info(f"⏱️  Duration: {result.get('duration', 0):.2f} seconds")
+        logger.info("="*70 + "\n")
+        
     except Exception as e:
-        logger.error(f"❌ DATA SYNC FAILED: {str(e)}")
-        logger.info("="*60)
+        logger.error("\n" + "="*70)
+        logger.error(f"❌ SCHEDULED DATA SYNC FAILED: {str(e)}")
+        logger.error("="*70 + "\n")
+        import traceback
+        logger.error(traceback.format_exc())
+
+def sync_amazon_only():
+    """Sync only Amazon data - Quick sync"""
+    from server_py.database_sync_service import data_sync_service
+    
+    logger.info("🔄 Quick Amazon sync started...")
+    try:
+        data_sync_service.sync_amazon_products_by_search()
+        logger.info("✅ Quick Amazon sync completed")
+    except Exception as e:
+        logger.error(f"❌ Amazon sync failed: {e}")
+
+def sync_flipkart_only():
+    """Sync only Flipkart data - Quick sync"""
+    from server_py.database_sync_service import data_sync_service
+    
+    logger.info("🔄 Quick Flipkart sync started...")
+    try:
+        data_sync_service.sync_flipkart_products()
+        logger.info("✅ Quick Flipkart sync completed")
+    except Exception as e:
+        logger.error(f"❌ Flipkart sync failed: {e}")
 
 def start_scheduler():
     """Start scheduler with data sync jobs"""
-    logger.info("🚀 Starting Scheduler with Data Sync...")
+    logger.info("\n" + "="*70)
+    logger.info("🚀 STARTING SCHEDULER SERVICE")
+    logger.info("="*70)
     
-    # Sync data twice daily: 9 AM and 9 PM
+    # Job 1: Full sync twice daily (9 AM and 9 PM)
     scheduler.add_job(
         func=sync_all_data,
         trigger=CronTrigger(hour='9,21', minute=0),
-        id='sync_data_twice_daily',
-        name='Sync Amazon & Flipkart Data',
+        id='full_sync_twice_daily',
+        name='Full Data Sync (Amazon + Flipkart)',
         replace_existing=True,
         max_instances=1
     )
-    logger.info("✅ Scheduled: Data Sync (9 AM & 9 PM daily)")
+    logger.info("✅ Scheduled: Full Data Sync at 9:00 AM & 9:00 PM daily")
+    
+    # Job 2: Quick Amazon sync every 6 hours
+    scheduler.add_job(
+        func=sync_amazon_only,
+        trigger=IntervalTrigger(hours=6),
+        id='amazon_sync_6h',
+        name='Quick Amazon Sync',
+        replace_existing=True,
+        max_instances=1
+    )
+    logger.info("✅ Scheduled: Amazon Sync every 6 hours")
+    
+    # Job 3: Quick Flipkart sync every 8 hours
+    scheduler.add_job(
+        func=sync_flipkart_only,
+        trigger=IntervalTrigger(hours=8),
+        id='flipkart_sync_8h',
+        name='Quick Flipkart Sync',
+        replace_existing=True,
+        max_instances=1
+    )
+    logger.info("✅ Scheduled: Flipkart Sync every 8 hours")
     
     scheduler.start()
-    logger.info("✅ Scheduler started!")
+    
+    # Show next run times
+    logger.info("\n📅 Next Scheduled Runs:")
+    for job in scheduler.get_jobs():
+        logger.info(f"  - {job.name}: {job.next_run_time}")
+    
+    logger.info("\n✅ Scheduler started successfully!")
+    logger.info("="*70 + "\n")
 
 def stop_scheduler():
+    """Stop the scheduler gracefully"""
     try:
-        scheduler.shutdown(wait=True)
-        logger.info("🛑 Scheduler stopped")
+        if scheduler.running:
+            scheduler.shutdown(wait=True)
+            logger.info("\n" + "="*70)
+            logger.info("🛑 SCHEDULER STOPPED")
+            logger.info("="*70 + "\n")
     except Exception as e:
         logger.error(f"Error stopping scheduler: {e}")
 
 def get_scheduler_status():
+    """Get current scheduler status and job information"""
+    if not scheduler.running:
+        return {
+            "running": False,
+            "message": "Scheduler is not running",
+            "jobs": []
+        }
+    
+    jobs_info = []
+    for job in scheduler.get_jobs():
+        jobs_info.append({
+            "id": job.id,
+            "name": job.name,
+            "next_run": str(job.next_run_time),
+            "trigger": str(job.trigger)
+        })
+    
     return {
-        "running": scheduler.running,
-        "jobs": [
-            {
-                "id": job.id,
-                "name": job.name,
-                "next_run": str(job.next_run_time)
-            }
-            for job in scheduler.get_jobs()
-        ]
+        "running": True,
+        "message": "Scheduler is running",
+        "total_jobs": len(jobs_info),
+        "jobs": jobs_info
     }
+
+def trigger_manual_sync():
+    """Manually trigger a full sync (useful for testing)"""
+    logger.info("🔧 Manual sync triggered")
+    sync_all_data()
