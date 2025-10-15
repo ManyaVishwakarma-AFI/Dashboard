@@ -208,7 +208,7 @@ function MetricCard({ title, value, icon, color, isLoading }: MetricCardProps) {
 }
 
 export default function MetricsCards({ filters }: MetricsCardsProps) {
-  const BASE_URL = "http://127.0.0.1:9001";
+  const BASE_URL = "http://localhost:8000";
   const [statistics, setStatistics] = useState<any>(null);
   const [categories, setCategories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);

@@ -2,7 +2,8 @@ from fastapi import FastAPI, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from sqlalchemy import text
+
+from sqlalchemy import text, func
 from typing import List, Optional
 import subprocess, json
 from pydantic import BaseModel
@@ -12,6 +13,23 @@ from sklearn.preprocessing import MinMaxScaler
 
 from . import crud, schemas, models
 from .database_config import get_db, engine
+import requests
+from datetime import datetime
+from contextlib import asynccontextmanager
+
+# Correct imports
+from server_py import crud, schemas, models
+from server_py.database_config import get_db, engine, Base
+from server_py.rapidapi import rapidapi_client
+from server_py.database_sync_service import data_sync_service
+
+# Create tables
+Base.metadata.create_all(bind=engine)
+# Global cache
+CACHE = {
+    "last_updated": None,
+    "data": {}
+}
 
 
 # --------------------------
@@ -546,6 +564,111 @@ def get_filtered_analytics(
     except Exception as e:
         print(f"Error getting filtered analytics: {e}")
         return {"error": str(e)}
+
+
+# @app.post("/api/cache/refresh")
+# async def refresh_cache():
+#     """
+#     Refresh dashboard cache by fetching fresh data from internal endpoints.
+#     This is called automatically by the scheduler or manually via API.
+#     """
+#     try:
+#         base_url = "http://127.0.0.1:8000"
+#         endpoints = {
+#             "summary": f"{base_url}/analytics/summary",
+#             "category": f"{base_url}/analytics/category",
+#             "sentiment": f"{base_url}/Amazon_Reviews/sentiment",
+#             "ratings": f"{base_url}/Amazon_Reviews/ratings",
+#             "categories": f"{base_url}/Amazon_Reviews/categories",
+#             "trending": f"{base_url}/Amazon_Reviews/trending"
+#         }
+
+#         refreshed_data = {}
+
+#         for key, url in endpoints.items():
+#             try:
+#                 resp = requests.get(url, timeout=10)
+#                 if resp.status_code == 200:
+#                     refreshed_data[key] = resp.json()
+#                 else:
+#                     refreshed_data[key] = {"error": f"Failed: {resp.status_code}"}
+#             except Exception as e:
+#                 refreshed_data[key] = {"error": str(e)}
+
+#         CACHE["data"] = refreshed_data
+#         CACHE["last_updated"] = datetime.now().isoformat()
+
+#         return {
+#             "success": True,
+#             "message": "Dashboard cache refreshed successfully",
+#             "last_updated": CACHE["last_updated"],
+#             "keys": list(refreshed_data.keys())
+#         }
+
+#     except Exception as e:
+#         return {
+#             "success": False,
+#             "error": str(e)
+#         }
+
+# @app.get("/api/cache/status")
+# async def get_cache_status():
+#     """
+#     Returns the current cache contents and timestamp.
+#     """
+#     if CACHE["last_updated"]:
+#         return {
+#             "status": "fresh",
+#             "last_updated": CACHE["last_updated"],
+#             "data_keys": list(CACHE["data"].keys())
+#         }
+#     return {"status": "stale", "message": "Cache not yet initialized"}
+
+
+# ============================================
+# LIFESPAN FOR SCHEDULER
+# ============================================
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    print("\n" + "="*50)
+    print("🚀 APPLICATION STARTUP")
+    print("="*50)
+    
+    # Import scheduler here to avoid circular import at module level
+    from server_py.schedule import start_scheduler, stop_scheduler
+    start_scheduler()
+    
+    print("✅ Application ready!")
+    print("="*50 + "\n")
+    
+    yield
+    
+    # Shutdown
+    print("\n" + "="*50)
+    print("🛑 APPLICATION SHUTDOWN")
+    print("="*50)
+    stop_scheduler()
+    print("="*50 + "\n")
+
+# ============================================
+# CREATE FASTAPI APP
+# ============================================
+app = FastAPI(
+    title="TrendSensei API",
+    description="Amazon & Flipkart Product Analytics with RapidAPI Integration",
+    version="1.0.0",
+    lifespan=lifespan  # Add lifespan here
+)
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
