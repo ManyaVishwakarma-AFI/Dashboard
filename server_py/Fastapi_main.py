@@ -626,49 +626,164 @@ def get_filtered_analytics(
 
 
 # ============================================
-# LIFESPAN FOR SCHEDULER
+# ADD THESE ENDPOINTS TO YOUR Fastapi_main.py
 # ============================================
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup
-    print("\n" + "="*50)
-    print("🚀 APPLICATION STARTUP")
-    print("="*50)
-    
-    # Import scheduler here to avoid circular import at module level
-    from server_py.schedule import start_scheduler, stop_scheduler
-    start_scheduler()
-    
-    print("✅ Application ready!")
-    print("="*50 + "\n")
-    
-    yield
-    
-    # Shutdown
-    print("\n" + "="*50)
-    print("🛑 APPLICATION SHUTDOWN")
-    print("="*50)
-    stop_scheduler()
-    print("="*50 + "\n")
 
-# ============================================
-# CREATE FASTAPI APP
-# ============================================
-app = FastAPI(
-    title="TrendSensei API",
-    description="Amazon & Flipkart Product Analytics with RapidAPI Integration",
-    version="1.0.0",
-    lifespan=lifespan  # Add lifespan here
-)
+# Add these imports at the top
+from server_py.schedule import get_scheduler_status, trigger_manual_sync
+from server_py.database_sync_service import data_sync_service
 
-# CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"], 
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Add these endpoints after your existing endpoints
 
+# --------------------------
+# Scheduler & Sync Endpoints
+# --------------------------
+
+@app.get("/scheduler/status")
+def get_scheduler_status_endpoint():
+    """
+    Get current scheduler status and scheduled jobs
+    """
+    return get_scheduler_status()
+
+@app.post("/scheduler/trigger-sync")
+def trigger_sync_manually():
+    """
+    Manually trigger a full data sync (for testing/debugging)
+    """
+    try:
+        logger.info("Manual sync triggered via API")
+        trigger_manual_sync()
+        return {
+            "success": True,
+            "message": "Full data sync triggered successfully",
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error triggering sync: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.post("/sync/amazon")
+def sync_amazon_data():
+    """
+    Manually sync Amazon data only
+    """
+    try:
+        logger.info("Amazon sync triggered via API")
+        result = data_sync_service.sync_amazon_products_by_search()
+        return {
+            "success": True,
+            "message": "Amazon data synced",
+            "products_synced": result,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.post("/sync/flipkart")
+def sync_flipkart_data():
+    """
+    Manually sync Flipkart data only
+    """
+    try:
+        logger.info("Flipkart sync triggered via API")
+        result = data_sync_service.sync_flipkart_products()
+        return {
+            "success": True,
+            "message": "Flipkart data synced",
+            "products_synced": result,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.get("/sync/test-api")
+def test_rapid_api_connection():
+    """
+    Test RapidAPI connection and credentials
+    """
+    from server_py.rapidapi import rapidapi_client
+    
+    try:
+        # Test Amazon API
+        amazon_result = rapidapi_client.search_amazon_products("laptop", page=1)
+        amazon_success = 'error' not in amazon_result and len(amazon_result.get('results', [])) > 0
+        
+        # Test Flipkart API
+        flipkart_result = rapidapi_client.search_flipkart_products("laptop", page=1)
+        flipkart_success = 'error' not in flipkart_result and len(flipkart_result.get('results', [])) > 0
+        
+        return {
+            "amazon": {
+                "connected": amazon_success,
+                "sample_products": len(amazon_result.get('results', [])),
+                "error": amazon_result.get('error') if not amazon_success else None
+            },
+            "flipkart": {
+                "connected": flipkart_success,
+                "sample_products": len(flipkart_result.get('results', [])),
+                "error": flipkart_result.get('error') if not flipkart_success else None
+            },
+            "overall_status": "connected" if (amazon_success or flipkart_success) else "failed"
+        }
+    except Exception as e:
+        return {
+            "overall_status": "error",
+            "error": str(e)
+        }
+
+@app.get("/sync/stats")
+def get_sync_statistics(db: Session = Depends(get_db)):
+    """
+    Get statistics about synced data
+    """
+    try:
+        # Count products by source
+        amazon_count = db.query(models.Product).filter(
+            models.Product.source == 'amazon'
+        ).count()
+        
+        flipkart_count = db.query(models.Product).filter(
+            models.Product.source == 'flipkart'
+        ).count()
+        
+        # Get latest sync times
+        latest_amazon = db.query(models.Product).filter(
+            models.Product.source == 'amazon'
+        ).order_by(models.Product.last_updated.desc()).first()
+        
+        latest_flipkart = db.query(models.Product).filter(
+            models.Product.source == 'flipkart'
+        ).order_by(models.Product.last_updated.desc()).first()
+        
+        # Count deals
+        deals_count = db.query(models.Deal).filter(
+            models.Deal.is_active == True
+        ).count()
+        
+        return {
+            "total_products": amazon_count + flipkart_count,
+            "amazon_products": amazon_count,
+            "flipkart_products": flipkart_count,
+            "active_deals": deals_count,
+            "last_amazon_sync": latest_amazon.last_updated.isoformat() if latest_amazon else None,
+            "last_flipkart_sync": latest_flipkart.last_updated.isoformat() if latest_flipkart else None,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        return {
+            "error": str(e)
+        }
+    
+    
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
