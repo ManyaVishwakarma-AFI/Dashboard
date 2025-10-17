@@ -389,7 +389,7 @@ export default function Dashboard() {
   >([]);
   const [selectedSource, setSelectedSource] = useState("products");
 
-  const BASE_URL = "http://127.0.0.1:9001"; // 🔹 Change to your remote FastAPI URL in production
+  const BASE_URL = "http://localhost:8000"; // 🔹 Change to your remote FastAPI URL in production
 
   // Fetch notifications from FastAPI
   const fetchNotifications = async (source = selectedSource) => {

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 
@@ -112,3 +112,23 @@ class CategoryAnalyticsResponse(BaseModel):
 
 class AIQuery(BaseModel):
     question: str
+
+class UserOut(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    email: EmailStr
+    business_name: Optional[str]
+    location: str
+    business_interests: List[str]
+    created_at: datetime
+    updated_at: datetime
+
+class UserCreate(BaseModel):
+    first_name: str = Field(..., example="John")
+    last_name: str = Field(..., example="Doe")
+    email: EmailStr = Field(..., example="john.doe@example.com")
+    password: str = Field(..., min_length=6, example="password123")
+    business_name: Optional[str] = Field(None, example="My Business")
+    location: str = Field(..., example="mumbai")
+    business_interests: List[str] = Field(..., example=["electronics", "books"])    

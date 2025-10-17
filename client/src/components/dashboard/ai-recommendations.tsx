@@ -45,7 +45,7 @@ export default function AIRecommendations({}: AIRecommendationsProps) {
 
       const aiAnswers = await Promise.all(
         sources.map(async (source) => {
-          const res = await fetch("http://127.0.0.1:9001/ai/query", {
+          const res = await fetch("http://localhost:8000/ai/query", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ question: prompts[source], source, limit: 5 }),

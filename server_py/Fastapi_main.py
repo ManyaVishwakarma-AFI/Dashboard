@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, Query
+from fastapi import FastAPI, Depends, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -6,6 +6,7 @@ from typing import List, Optional
 import subprocess, json
 from pydantic import BaseModel
 import uvicorn
+import pandas as pd
 
 from . import crud, schemas, models
 from .database_config import get_db, engine
@@ -113,69 +114,7 @@ def analytics_by_category(db: Session = Depends(get_db)):
     categories = crud.get_category_analytics(db)
     return {"categories": categories}
 
-# @app.post("/ai/query")
-# def ask_ai(query: AIQuery):
-#     question = query.question
 
-#     with engine.connect() as conn:
-#         # Count products
-#         summary = conn.execute(text("SELECT COUNT(*) AS total FROM products"))
-#         total_products = summary.scalar()
-
-#         # Top products
-#         products = conn.execute(
-#             text("""
-#             SELECT id, category, brand, title, price, rating
-#             FROM products 
-#             ORDER BY reviews DESC 
-#             LIMIT 50
-#             """)
-#         )
-#         top_products = [dict(row._mapping) for row in products]
-
-#         # Recent Amazon reviews
-#         reviews = conn.execute(
-#             text("""
-#             SELECT product_id, star_rating, review_headline, review_body, review_date 
-#             FROM "Amazon_Reviews"
-#             ORDER BY review_date DESC 
-#             LIMIT 50
-#             """)
-#         )
-#         amazon_reviews = [dict(row._mapping) for row in reviews]
-
-#     # JSON safe
-#     top_products_json = json.dumps(top_products, indent=2, default=decimal_to_float)
-#     reviews_json = json.dumps(amazon_reviews, indent=2, default=decimal_to_float)
-
-#     # Prompt for AI
-#     prompt = f"""
-#     We have {total_products} products in the database.
-
-#     Top 50 products:
-#     {top_products_json}
-
-#     Recent Amazon reviews:
-#     {reviews_json}
-
-#     Question: {question}
-#     Answer in simple, human-readable text using the above context.
-#     """
-
-#     try:
-#         result = subprocess.run(
-#             ["ollama", "run", "mistral"],
-#             input=prompt,
-#             capture_output=True,
-#             text=True,
-#             encoding="utf-8",
-#             errors="ignore"
-#         )
-#         answer = result.stdout.strip()
-#     except Exception as e:
-#         answer = f"Error: {str(e)}"
-
-#     return {"answer": answer}
 @app.post("/ai/query")
 def ask_ai(query: AIQuery, db: Session = Depends(get_db)):
     limit = query.limit or 50  # default 50 if not provided
@@ -236,16 +175,6 @@ def ask_ai(query: AIQuery, db: Session = Depends(get_db)):
 
     return {"answer": answer}
 
-# @app.get("/products/top", response_model=List[schemas.Product])
-# def top_products_products_table(n: int = 10, db: Session = Depends(get_db)):
-#     """
-#     Fetch top N products from the products table based on rating.
-#     """
-#     return crud.get_top_products(db, n)
-
-# @app.get("/Amazon_Reviews/top", response_model=List[schemas.TopAmazonReview])
-# def top_products_amazon_reviews(n: int = 10, db: Session = Depends(get_db)):
-#     return crud.get_top_products_amazon(db, n)
 
 @app.get("/top")
 def get_top_items(
@@ -323,6 +252,71 @@ def get_notifications(
         return {"error": "Invalid table. Use 'products' or 'amazon_reviews'."}
 
     return {"table": table, "count": len(data), "data": data}
+
+from .routers import users
+app.include_router(users.router, prefix="/users")
+
+# @app.get("/analytics/category/{category_name}")
+# def get_products_by_category(category_name: str, db: Session = Depends(get_db)):
+#     """
+#     Returns all products belonging to the given category with name, avg price, total reviews, and rating.
+#     """
+#     query = text(f"""
+#         SELECT title AS product_name,
+#                ROUND(AVG(price), 2) AS avg_price,
+#                SUM(reviews) AS total_reviews,
+#                ROUND(AVG(rating), 2) AS avg_rating
+#         FROM products
+#         WHERE LOWER(category) = LOWER(:category_name)
+#         GROUP BY title
+#         ORDER BY total_reviews DESC
+#     """)
+#     rows = db.execute(query, {"category_name": category_name}).fetchall()
+#     products = [dict(row._mapping) for row in rows]
+#     return {"category": category_name, "products": products}
+
+@app.get("/analytics/category/{category_name}")
+def get_products_by_category(category_name: str, db: Session = Depends(get_db)):
+    """
+    Returns all products in a category with name, avg price, total reviews, and avg rating.
+    """
+    query = text("""
+        SELECT title AS product_name,
+               ROUND(AVG(price), 2) AS avg_price,
+               SUM(reviews) AS total_reviews,
+               ROUND(AVG(rating), 2) AS avg_rating
+        FROM products
+        WHERE LOWER(category) = LOWER(:category_name)
+        GROUP BY title
+        ORDER BY total_reviews DESC
+        LIMIT 50
+    """)
+    rows = db.execute(query, {"category_name": category_name}).fetchall()
+    products = [dict(row._mapping) for row in rows]
+    return {"category": category_name, "products": products}
+
+
+
+@app.get("/product/{product_title}")
+def get_product_details(product_title: str, db: Session = Depends(get_db)):
+    """
+    Get detailed info for a product by its title (case-insensitive).
+    """
+    query = text("""
+        SELECT title AS product_name,
+               price AS avg_price,
+               rating AS avg_rating,
+               reviews AS total_reviews
+        FROM products
+        WHERE LOWER(title) = LOWER(:product_title)
+        LIMIT 1
+    """)
+    row = db.execute(query, {"product_title": product_title}).fetchone()
+    
+    if not row:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    return dict(row._mapping)
 
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
