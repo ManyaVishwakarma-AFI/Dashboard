@@ -48,7 +48,7 @@ class AmazonReview(Base):
 
 
 class Product(Base):
-    __tablename__ = "products"  
+    __tablename__ = "flipkart"  
 
     id = Column(Integer, primary_key=True, index=True)
     asin = Column(String(20), unique=True, nullable=False)

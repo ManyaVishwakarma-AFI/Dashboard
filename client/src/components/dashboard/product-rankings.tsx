@@ -259,7 +259,7 @@ function ProductCard({ product, index }: { product: TrendingProduct; index: numb
   );
 }
 
-export default function ProductRankings() {
+export default function ProductRankings({ selectedSource }: { selectedSource: string }) {
   const BASE_URL = "http://localhost:8000"; // Replace with your FastAPI server IP if needed
   const [trending, setTrending] = useState<TrendingProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);

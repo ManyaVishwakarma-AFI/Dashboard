@@ -128,7 +128,6 @@ import NotFound from "@/pages/not-found";
 import Sales from "@/pages/sales";
 import Revenue from "@/pages/revenue";
 import Categories from "@/pages/categories";
-import Customers from "@/pages/customers";
 import CategoryProducts from "@/pages/category-products";
 import ProductDetails from "@/pages/product-details";
 
@@ -202,7 +201,6 @@ function Router() {
       <Route path="/categories" component={Categories} />
       <Route path="/category-products/:category" component={CategoryProducts} />
       <Route path="/product/:productName" component={ProductDetails} /> 
-      <Route path="/customers" component={Customers} />
 
       {/* Tools Pages */}
       <Route path="/subscription" component={Subscription} />

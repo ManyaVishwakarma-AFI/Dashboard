@@ -331,14 +331,14 @@ export default function Chatbot() {
     {
       id: "welcome",
       message:
-        "👋 Hi! I'm your AI Assistant.\n\nSelect a data source below (Products or Amazon Reviews), and ask me anything like:\n• What products are trending?\n• Which category has the best ratings?",
+        "👋 Hi! I'm your AI Assistant.\n\nSelect a data source below (Flipkart or Amazon Reviews), and ask me anything like:\n• What products are trending?\n• Which category has the best ratings?",
       isUser: false,
       timestamp: new Date(),
     },
   ]);
   const [inputMessage, setInputMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [selectedSource, setSelectedSource] = useState("products"); // 🔹 user selection
+  const [selectedSource, setSelectedSource] = useState("flipkart"); // 🔹 user selection
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -451,7 +451,7 @@ export default function Chatbot() {
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col">
-                <CardTitle className="text-sm font-medium">EcomAI Assistant</CardTitle>
+                <CardTitle className="text-sm font-medium">Insydz Assistant</CardTitle>
                 <Badge variant="secondary" className="text-xs bg-white/20 border-0 text-white">
                   AI Powered
                 </Badge>
@@ -517,8 +517,8 @@ export default function Chatbot() {
                   <SelectValue placeholder="Select data source" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="products">🛍 Products</SelectItem>
-                  <SelectItem value="amazon_reviews">💬 Amazon Reviews</SelectItem>
+                  <SelectItem value="flipkart">🛍 Flipkart</SelectItem>
+                  <SelectItem value="amazon_reviews">💬 Amazon</SelectItem>
                 </SelectContent>
               </Select>
 
